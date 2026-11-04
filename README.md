@@ -10,6 +10,7 @@ An agent skill with a Remotion engine. It turns talking-head clips into explaine
 - 仓库不含她的视频、截图、肖像、声音或台标。演示画面里的出镜位置是占位色块。
 - 成片默认带"AI生成 · 实验作品 · 非本人"标注。请保留这个标注。
 - 不要用真实创作者的肖像或声音生成出镜画面后公开发布。不要把成片当成本人作品发布。
+- 网页截图和 Logo 由使用者在自己的工程里抓取，仓库不含。Logo 是各公司的商标，只在讲到这个产品时用来指代它。截图里的新闻图片社照片要模糊掉。
 
 ## 效果
 
@@ -19,19 +20,29 @@ An agent skill with a Remotion engine. It turns talking-head clips into explaine
 
 上面的画面都来自 `--demo` 演示工程。数据是演示数据。
 
+### 科技主题和真实素材（v1.1）
+
+![tech 主题：3D 渲染底图上的片名、巨型数字、真实 Logo、真实网页截图、图标砖墙和片尾](docs/tech_theme.jpg)
+
+![网页截图：荧光笔、下划线和聚光跟着台词出现，镜头推到当前这句](docs/demo_webshot.gif)
+
+这两组画面来自一支测试片。测试片用 Wikimedia Commons 上林亦LYi 的《一个视频搞懂OpenClaw！》（CC BY 4.0）重新剪辑包装，本身不在仓库里。截图里是 PCMag、star-history 和 GitHub 的公开页面，PCMag 头图（Getty Images）已经模糊处理。
+
 ## 能做什么
 
 输入是两样东西：每句台词一段 1920×1080 的出镜 mp4，以及每句的朗读文本和字幕文本。输出是讲解画面、字幕、转场、配乐和音效合成后的成片。
 
 | 部分 | 内容 |
 |---|---|
-| 主版式 | 巨型数字 `bignum`、卡片墙 `wall`、白卡图表 `paper`、整页文档加荧光笔 `docpage`、实体卡 `ent6`、大公式条 `formula6`、白底计算器 `ui` |
-| 其他元素 | 片名卡、章节卡、片尾卡、照片卡、标签、小人、金币流、印章、弹幕、对话气泡、手绘圈等约 25 种；25 个 2.5D 图标 |
+| 主版式 | 巨型数字 `bignum`、卡片墙 `wall`、白卡图表 `paper`、整页文档加荧光笔 `docpage`、真实网页截图 `webshot`（浏览器外框，荧光笔、下划线、红框、聚光，跟着台词滚动）、实体卡 `ent6`、大公式条 `formula6`、白底计算器 `ui` |
+| 主题 | `finance`（默认：暖灰底、几何色块、¥ 钞票和手绘涂鸦）、`tech`（3D 渲染底图：磨砂玻璃键帽、玻璃气泡、线缆，浅景深，加流光和微尘；卡片换成玻璃材质）、`plain`。在 `project.json` 里切换，单个场景可以换底图 |
+| 其他元素 | 片名卡、章节卡、片尾卡、照片卡、真实 Logo 片 `logo`、图标砖墙 `tiles`、标签、小人、金币流、印章、弹幕、对话气泡、手绘圈等约 25 种；25 个 2.5D 图标和 12 个玻璃图标 |
 | 计时 | 元素入场对齐台词关键词：`S.k('关键词', -0.15)` |
 | 镜头和转场 | 镜头跟随当前项；场景间自动分配推拉、甩镜、推移、闪白、旋转推近 |
 | 画中画 | 全屏、圆形、矩形三种 |
 | 声音 | 人声、配乐、合成音效（嗖声、重击声等）混音，响度归一到 -16 LUFS |
 | 资料检索 | 每种版式要查的资料、来源分级、事实文件模板；Wikimedia Commons 自由许可照片的搜索和下载脚本，自动生成署名 |
+| 真实素材 | `web_shot.mjs`：用无头 Chrome 截网页，输出原文短语的像素坐标给荧光笔定位，能把指定段落滚进画面、模糊图片社照片；`commons_logo.py`：从 Wikimedia Commons 下载 Logo 并记录许可。拍历史版本的方法（GitHub 历史提交、Wayback 存档）写在 `research.md` |
 | 质检 | 关键帧审片拼图；整片视频帧和静帧逐帧对比 |
 
 风格规则写在 `references/style-bible.md`。规则来自对她 5 期公开视频的逐帧拆解，例如"主体要被画面边缘裁切，或者占画面 60% 以上""每 2–3 个深色场景插 1 个白纸场景"。
@@ -40,7 +51,8 @@ An agent skill with a Remotion engine. It turns talking-head clips into explaine
 
 - 不生成出镜画面。出镜片段要用别的工具生成或自己拍摄。
 - 不写口播稿。
-- 只做这一种风格。换风格要改组件代码。
+- 图形语言只有这一种。底色和道具可以换主题，也可以换成自己的底图；版式本身要改组件代码。
+- 不录屏，也不下载平台上的视频。网页截图是静态长图，靠滚动和镜头运动做出动感。
 - 只支持 1920×1080、24 帧。
 - 国旗只有 6 个：智利、中国、德国、法国、日本、美国。
 
@@ -50,7 +62,7 @@ An agent skill with a Remotion engine. It turns talking-head clips into explaine
 
 1. 从 [Releases](../../releases) 下载 `xiaolin-explainer-packaging.skill`。
 2. 在 Manus 里把这个文件添加为技能。
-3. 对 Manus 说："用 xiaolin-explainer-packaging，给 `<目录>` 里的口播片段做讲解包装，台词在 `<文件>`。"
+3. 对 Manus 说："用 xiaolin-explainer-packaging，给 `<目录>` 里的口播片段做讲解包装，台词在 `<文件>`。"开工前，Manus 会先问三件事：有没有固定在用的底图、台标怎么定、有没有指定要放的真实素材。
 
 ### 其他支持 SKILL.md 的 agent
 
@@ -80,7 +92,7 @@ bash $S/scripts/finalize.sh video.mp4 mix_raw.wav final.mp4
 python3 $S/scripts/audit.py video.mp4 72          # 逐帧质检，flagged 应为 0
 ```
 
-做自己的视频时，按 `SKILL.md` 的 7 步走：准备输入、建工程、规划场景、查资料、写分镜、关键帧审片、整片质检。分镜写法从 `templates/scenes_example.py` 复制。参数见 `references/layouts.md` 和 `references/storyboard-api.md`。
+做自己的视频时，按 `SKILL.md` 的步骤走：开工确认（底图、台标、真实素材）、准备输入、建工程、规划场景、查资料、写分镜、关键帧审片、整片质检。分镜写法从 `templates/scenes_example.py` 复制。参数见 `references/layouts.md` 和 `references/storyboard-api.md`。
 
 ### 字体：优设标题黑
 
@@ -97,10 +109,10 @@ xiaolin-explainer-packaging/
 │   ├── style-bible.md          图形语言、硬规则、色板、字体、转场、声音电平
 │   ├── layouts.md              每个版式的参数和示例
 │   ├── storyboard-api.md       timeline.json 格式、分镜 API、渲染命令
-│   └── research.md             资料检索规范和图片权利
-├── scripts/                    new_project、render_chunks、mix_audio、finalize、sheet、audit、commons_photo
+│   └── research.md             资料检索规范、网页截图和 Logo、图片和商标权利
+├── scripts/                    new_project、render_chunks、mix_audio、finalize、sheet、audit、commons_photo、commons_logo、web_shot
 └── templates/
-    ├── engine/                 Remotion 工程（src/、public/fonts、public/icons）
+    ├── engine/                 Remotion 工程（src/、public/fonts、public/icons、public/plates）
     ├── scenes_example.py       覆盖 7 种主版式的示例分镜
     ├── facts_template.md       事实文件模板
     └── *.example.json          时间线和工程配置示例
@@ -110,11 +122,14 @@ xiaolin-explainer-packaging/
 
 | 内容 | 许可 |
 |---|---|
-| 代码、文档、图标 | MIT，见 [LICENSE](LICENSE)。图标由 AI 图像工具生成 |
+| 代码、文档、图标、底图 | MIT，见 [LICENSE](LICENSE)。图标和 `public/plates/` 的底图由 AI 图像工具生成 |
 | 字体（D-DIN Condensed、Bebas Neue、Oswald、Quicksand、Noto Sans SC、Noto Serif SC） | SIL Open Font License 1.1，见 `templates/engine/public/fonts/LICENSES.txt` |
 | Remotion | 不在本仓库内，`npm install` 时下载。个人、3 人以内的公司和非营利组织可以免费使用。4 人以上的公司要购买公司授权：https://www.remotion.pro/license |
 | 优设标题黑 | 不在本仓库内，见上文 |
+| Logo、网页截图 | 不在本仓库内，由使用者抓取。Logo 是各公司的商标，Wikimedia Commons 上标为公有领域的文件也一样 |
 
 ## 来历
 
 这个 skill 由 [Manus](https://manus.im) 在一次风格复刻实验中制作。制作过程是：先逐帧拆解她的公开视频，再用 Remotion 重建版式，最后用一期约 12 分钟的养老金选题，把讲解包装迭代了 4 版（v3–v6）。实验中的出镜画面用了真人形象的 AI 生成，所以那期成片没有放进本仓库。
+
+v1.1 用一支 CC BY 4.0 的 OpenClaw 讲解视频做了第二次测试，从剪辑到成片走完全程。根据那次的反馈，加入了 tech 主题、3D 渲染底图、真实网页截图和 Logo，并把"开工前先问底图和素材"写进了工作流。

@@ -20,7 +20,7 @@ export const F: any = {
   ys: "'YS','NSC',sans-serif",
   heavy: "'NSC',sans-serif",
   num: "'BB','DIN','NSC',sans-serif",
-  din: "'DIN','BB',sans-serif",
+  din: "'DIN','BB','NSC',sans-serif",
   en: "'QS',sans-serif",
   wm: "'QS','NSC',sans-serif",
   serif: "Georgia,'Times New Roman',serif",

@@ -81,6 +81,40 @@ look(sc, S.k('关键词', -0.45), D['m'][0][0], D['m'][0][1], 1.22, 0.9, D['left
 - 背景用 `{'type': 'paper'}`，画中画用 `aroll='pip', pip='br'`。
 - 正文只放能核对来源的逐字引用。
 
+### `webshot` 真实网页截图（用 `add_web` 添加）
+
+来源本身是网页时（新闻报道、GitHub 仓库或文件、机构报告页、产品官网），优先放真实截图，比 `docpage` 重排更有说服力。截图用 `scripts/web_shot.mjs` 拍（见 `research.md` 的"真实素材"），文件放 `public/shots/`。
+
+```python
+PC = 'shots/pcmag.png'
+y1 = web_y(PC, 'speedrun deleting your inbox', 0.42)        # 让这句停在视窗 42% 高度的滚动位置
+W = add_web(sc, t0, PC, x=960, y=520, w=1640, h=860, url='pcmag.com/news/…',
+            sy=[(t0, 0), (S.k('删光了', -0.75), y1, 0.7)],   # 滚动关键帧：(时刻, 截图像素 y, 时长)
+            marks=[dict(t=t0 + 0.3, q='Accidentally Deleted Her Emails', kind='under', out=S.k('删光了', -0.8)),
+                   dict(t=S.k('删光了', -0.2), q='speedrun deleting your inbox', kind='hl', spot=True),
+                   dict(t=S.k('毫无办法', -0.2), q="I couldn't stop it from my phone.", kind='under', spot=True)],
+            anim='up', ad=0.45, nodof=True, sfx='whoosh')
+sc.cam(t0, x=960, y=520, s=1.0).cam(S.k('删光了', -0.75), x=W['m'][1][0], y=W['m'][1][1], s=1.22, d=0.8)
+```
+
+- 画面是带红黄绿三点和锁形地址栏的浏览器外框，`url` 写真实地址（可以截短）。截图在框内按 `sy`（或横向 `sx`）关键帧滚动。
+- `marks` 的 `q` 必须是拍截图时 `--boxes` 里写过的短语，坐标从 `<png>.boxes.json` 读；没有文字可定位时（曲线图、图片）用 `r=[[x, y, w, h]]` 直接给截图像素框。
+- `kind`：`hl` 荧光笔按行扫过，`under` 红色下划线，`box` 红框，`none` 只做聚光不画线。`spot=True` 把框外压暗（当前项最亮）；同时生效的几个聚光会合成一个区域，新标记出现时聚光框平滑扩过去。`out=` 让标记和聚光在该时刻淡出。
+- 返回 `W['m'][i]` 是第 i 个标记在它出现时的世界坐标（已算上滚动），镜头直接推过去。截图正文字小，推到 `s=1.2–1.6` 才看得清；整框 `w=1640` 加推近后被画面边缘裁切，符合 R1。
+- 标记的屏幕 y 要在 880 以上，避开字幕。换行处只剩引号之类的窄碎片框（宽 < 24px）会被自动丢掉。
+- 背景用深色（`{'type': 'dark'}`），白色网页本身就是这一拍的白页。不要放在 `paper` 上，白框压白底没有层次。
+
+### `logo` 真实 Logo
+
+```python
+sc.add('logo', S.k('WhatsApp', -0.15), x=400, y=345, src='logos/whatsapp.png', size=150, label='WhatsApp',
+       lc='#2a2730', anim='pop', ad=0.3, nodof=True, sfx='pop')
+```
+
+- 白色圆角片上放 Logo，下方 `label` 写名称（`lc` 名称颜色，深色背景上用默认的白色）。`fill` 是 Logo 占片的比例（默认 0.62），`bg` 可换片底。
+- Logo 用 `scripts/commons_logo.py` 取，PNG 和 SVG 都可以。不改色、不变形、不和别的元素拼成新标志。
+- 多个 Logo 排成规整网格，关键词点到的先单独弹出，其余一起出。印章、标签不要压在 Logo 和名称上。
+
 ### `ent6` 实体卡
 
 ```python
@@ -148,6 +182,31 @@ sc.fx(T.t0 + 0.75, 'shake', a=16, d=0.32)
 | `none` | 透明 | 无 |
 
 场景级选项（`Scene(..., sway=0.5, persp=2300, fg=None)`）：`sway` 3D 摇摆幅度，`persp` 透视距离，`fg` 前景虚化道具（`True` 强制显示，`False` 关闭）。
+
+### 主题（`project.json` 的 `theme`）
+
+`dark`、`paper`、`title`、`end` 四种背景的样子由主题决定，分镜代码不用改：
+
+| 主题 | 适合 | 深色背景 | 片名、片尾 |
+|---|---|---|---|
+| `finance`（默认） | 财经、民生、政策 | 暖灰底 + 几何色块 + ¥ 钞票、硬币、手绘涂鸦 | 胶片条 + 涂鸦 |
+| `tech` | AI、软件、互联网 | 4 张 3D 渲染底图（磨砂玻璃键帽、玻璃气泡、线缆，浅景深）+ 缓慢流动的光 + 微尘 | `plates/tech_title.jpg` 底图 |
+| `plain` | 其他题材 | 只有渐变和颗粒 | 简洁 |
+
+- 底图在 `public/plates/`。`dark` 的 `v` 在主题的几张底图里轮换；单个场景可以用 `bg.plate='plates/xxx.jpg'` 换底图，`bg.plate=False` 不用底图。项目专属的片名底图也这样换。
+- 新题材要新底图时，用图像生成做：暗场、四角有物、中心留空、浅景深、电影布光，1920×1080 以上。生成后检查中心区域干净，没有可读的文字和 Logo。
+- `tech` 下，`concept` 卡和 `formula6` 面板自动换成玻璃材质（半透明深色、细描边、顶部高光）。
+- 可以覆盖局部：`"theme": {"name": "tech", "pal": {"coral": "#e5533d"}, "dark": "<css 背景>"}`。
+- `"en_labels": false` 删掉所有英文副标（片名 `en`、卡片 `en`、片尾英文行）。
+
+### 图标砖墙 `tiles` 和 tech 图标
+
+```python
+sc.add('tiles', t, x=2900, y=520, cols=14, rows=8, ts=118, gap=26, seed=3, pop=[[t + 0.8, 12], [S.k('六千', -0.1), 40]], anim='fade', nodof=True)
+```
+
+- 满屏的应用图标方块，表示"很多个"（插件、Skills、应用）。`ts` 方块边长，`gap` 间距，`seed` 随机排列，`stag` 从中心向外依次出现的延迟（默认 0.045），`lo` 未点亮方块的不透明度（默认 0.5），`pop=[[时刻, 个数], ...]` 分批点亮成彩色。中间压一张 `concept` 卡写名称。
+- `icon` 元素的 `src='tech:<名字>'` 画玻璃图标方块，名字有 `term` `chat` `file` `gear` `key` `lock` `warn` `cloud` `robot` `bolt` `mail` `search`。
 
 ## 镜头和特效
 

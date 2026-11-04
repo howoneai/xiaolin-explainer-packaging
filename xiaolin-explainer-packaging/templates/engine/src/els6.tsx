@@ -4,6 +4,8 @@ import React from 'react';
 import {Img} from 'remotion';
 import {back, clamp, eio, eout, F, fmt, GText, img, lerp, prog} from './lib';
 import {FlagSvg} from './els';
+import {TH} from './theme';
+const CJK = (s: any) => /[\u3400-\u9fff\uff00-\uffef]/.test(String(s ?? ''));
 
 // focus timeline [[t, idx], ...] -> {cur, prev, p}
 const focusAt = (fs: any[] | undefined, t: number) => {
@@ -244,7 +246,7 @@ export const Formula6: React.FC<any> = ({e, t}) => {
   const hlv = (i: number) => lerp(prev === i ? 1 : 0, cur === i ? 1 : 0, hp);
   const anyHl = (e.hl ?? []).length > 0 && cur >= 0;
   return (
-    <div style={{position: 'relative', width: pw, height: ph, borderRadius: 30, background: e.pbg ?? 'linear-gradient(170deg,#57397f 0%,#432c69 45%,#33224f 100%)', boxShadow: '0 40px 100px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.12)', border: '2px solid rgba(200,170,255,.22)'}}>
+    <div style={{position: 'relative', width: pw, height: ph, borderRadius: 30, background: e.pbg ?? TH.panel, boxShadow: '0 40px 100px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.12)', border: '2px solid rgba(200,170,255,.22)'}}>
       {e.title && <div style={{position: 'absolute', left: 0, right: 0, top: 54, textAlign: 'center'}}>
         <GText txt={e.title} size={e.ts ?? 64} grad="lilac" glow={false} ls={6} />
         {e.en && <div style={{fontFamily: F.en, fontWeight: 700, fontSize: 18, letterSpacing: 3, color: 'rgba(225,205,255,.45)', marginTop: 4}}>{e.en}</div>}
@@ -260,8 +262,8 @@ export const Formula6: React.FC<any> = ({e, t}) => {
                 {h > 0 && <div style={{position: 'absolute', left: 0, right: 0, top: fs * 0.14, bottom: fs * 0.14, borderRadius: 14, background: 'linear-gradient(180deg,#f6fac9,#dde78e)', opacity: h, transform: `scale(${lerp(0.85, 1, eout(h))})`, boxShadow: '0 0 30px rgba(230,240,150,.45)'}} />}
                 <span style={{position: 'relative'}}>
                   {k.op ? <span style={{fontFamily: F.din, fontSize: fs * 0.62, color: 'rgba(220,205,250,.75)'}}>{k.s}</span>
-                    : h > 0.5 ? <span style={{fontFamily: k.font === 'ys' ? F.ys : F.din, fontSize: fs * (k.fs ?? 1), color: '#3a4214', letterSpacing: 1}}>{k.s}</span>
-                    : <GText txt={k.s} font={k.font ?? 'din'} size={fs * (k.fs ?? 1)} grad="lav" glow={false} ls={1} />}
+                    : h > 0.5 ? <span style={{fontFamily: k.font === 'ys' || (!k.font && CJK(k.s)) ? F.ys : F.din, fontSize: fs * (k.fs ?? 1), color: '#3a4214', letterSpacing: 1}}>{k.s}</span>
+                    : <GText txt={k.s} font={k.font ?? (CJK(k.s) ? 'ys' : 'din')} size={fs * (k.fs ?? 1)} grad="lav" glow={false} ls={1} />}
                 </span>
                 {sp > 0 && <div style={{position: 'absolute', left: '-6%', right: '-6%', top: '50%', height: 10, borderRadius: 5, background: '#ff6b6b', transform: `rotate(-14deg) scaleX(${sp})`, transformOrigin: '0 50%', boxShadow: '0 0 12px rgba(255,80,80,.6)'}} />}
               </div>

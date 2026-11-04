@@ -2,6 +2,8 @@ import React from 'react';
 import {Img} from 'remotion';
 import {back, clamp, eio, eout, F, fmt, GRAD, GText, img, lerp, prog, rnd} from './lib';
 import {Banknote, Sparkle} from './bg';
+import {TechTile} from './bg_tech';
+import {TH} from './theme';
 
 // ---------------------------------------------------------------- envelope
 export const envelope = (e: any, t: number) => {
@@ -118,10 +120,11 @@ export const Card: React.FC<any> = ({e, t, v}) => {
 
 // ---------------------------------------------------------------- Concept card (big gradient word + icon)
 export const Concept: React.FC<any> = ({e, v}) => {
-  const w = e.w || 760, h = e.h || 340;
+  const w = e.w || 760, h = e.h || 340, GL = TH.card === 'glass';
   return (
-    <div style={{position: 'relative', width: w, height: h, borderRadius: 20, background: 'linear-gradient(165deg,#25232b,#16151a)', border: `2.5px solid ${e.bd || 'rgba(238,226,170,.7)'}`, boxShadow: `0 34px 70px rgba(0,0,0,.55)${v.litv ? `, 0 0 ${46 * v.litv}px rgba(255,220,140,.45)` : ''}`}}>
-      <div style={{position: 'absolute', inset: 14, borderRadius: 12, border: '2px dashed rgba(255,255,255,.16)'}} />
+    <div style={{position: 'relative', width: w, height: h, borderRadius: 20, background: GL ? 'linear-gradient(160deg,rgba(40,42,58,.80),rgba(14,15,22,.88))' : 'linear-gradient(165deg,#25232b,#16151a)', border: `${GL ? 1.5 : 2.5}px solid ${e.bd || (GL ? 'rgba(238,226,170,.55)' : 'rgba(238,226,170,.7)')}`, boxShadow: `0 34px 70px rgba(0,0,0,.55)${GL ? ', inset 0 1.5px 0 rgba(255,255,255,.2), inset 0 0 70px rgba(150,170,255,.05)' : ''}${v.litv ? `, 0 0 ${46 * v.litv}px rgba(255,220,140,.45)` : ''}`}}>
+      <div style={{position: 'absolute', inset: 14, borderRadius: 12, border: `${GL ? 1.5 : 2}px dashed rgba(255,255,255,${GL ? 0.09 : 0.16})`}} />
+      {GL && <div style={{position: 'absolute', left: 0, right: 0, top: 0, height: '46%', borderRadius: '20px 20px 0 0', background: 'linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0))'}} />}
       <div style={{position: 'absolute', left: e.icon ? 60 : 0, right: e.icon ? undefined : 0, top: 0, bottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: e.icon ? 'flex-start' : 'center'}}>
         <GText txt={e.word} size={e.size || 150} font="ys" grad={e.grad || 'gold'} ext />
         {e.en && <div style={{fontFamily: F.en, fontWeight: 700, fontSize: e.ensize || 40, color: 'transparent', WebkitTextStroke: '1.6px rgba(255,255,255,.42)', letterSpacing: 2, marginTop: 4, whiteSpace: 'nowrap'}}>{e.en}</div>}
@@ -160,7 +163,8 @@ export const Panel: React.FC<any> = ({e}) => {
 // ---------------------------------------------------------------- Icon (+label)
 export const Icon: React.FC<any> = ({e, v}) => (
   <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-    <Img src={img(e.src.includes('/') ? e.src : `icons/${e.src}.png`)} style={{height: e.size || 220, filter: `drop-shadow(0 16px 22px rgba(0,0,0,.5))${e.gray ? ' grayscale(1) brightness(.6)' : ''}`}} />
+    {String(e.src).startsWith('tech:') ? <TechTile name={e.src.slice(5)} s={e.size || 220} c={e.c || 'teal'} /> :
+    <Img src={img(e.src.includes('/') ? e.src : `icons/${e.src}.png`)} style={{height: e.size || 220, filter: `drop-shadow(0 16px 22px rgba(0,0,0,.5))${e.gray ? ' grayscale(1) brightness(.6)' : ''}`}} />}
     {e.label && <div style={{fontFamily: F.ys, fontSize: e.lsize || 42, color: e.lc || '#f3f1e6', marginTop: 8, whiteSpace: 'nowrap', textShadow: '0 3px 10px rgba(0,0,0,.6)'}}>{e.label}</div>}
     {e.en && <div style={{fontFamily: F.en, fontWeight: 700, fontSize: 19, letterSpacing: 2, color: 'rgba(240,238,225,.6)', marginTop: 2, whiteSpace: 'nowrap'}}>{e.en}</div>}
   </div>
@@ -514,7 +518,7 @@ export const Comment: React.FC<any> = ({e}) => (
     <div style={{flex: 1}}>
       <div style={{fontFamily: F.heavy, fontWeight: 600, fontSize: 24, color: '#fb7299'}}>{e.name}</div>
       <div style={{fontFamily: F.heavy, fontWeight: 600, fontSize: 32, color: '#222', marginTop: 4, lineHeight: 1.35}}>{e.txt}</div>
-      <div style={{fontFamily: F.heavy, fontSize: 20, color: '#9a9aa6', marginTop: 8}}>{e.meta || '👍 2.3万'}</div>
+      {e.meta !== '' && <div style={{fontFamily: F.heavy, fontSize: 20, color: '#9a9aa6', marginTop: 8}}>{e.meta ?? '👍 2.3万'}</div>}
     </div>
   </div>
 );
