@@ -185,19 +185,24 @@ sc.fx(T.t0 + 0.75, 'shake', a=16, d=0.32)
 
 ### 主题（`project.json` 的 `theme`）
 
-`dark`、`paper`、`title`、`end` 四种背景的样子由主题决定，分镜代码不用改：
+主题决定 `dark`、`paper`、`title`、`end` 四种背景，也决定版式组件的材质（卡片墙、文档页、公式面板、计算器、巨型数字）、字体，以及片名卡和片尾卡的样式。分镜代码不用改，换一个词就能整片换风格。
 
-| 主题 | 适合 | 深色背景 | 片名、片尾 |
-|---|---|---|---|
-| `finance`（默认） | 财经、民生、政策 | 暖灰底 + 几何色块 + ¥ 钞票、硬币、手绘涂鸦 | 胶片条 + 涂鸦 |
-| `tech` | AI、软件、互联网 | 4 张 3D 渲染底图（磨砂玻璃键帽、玻璃气泡、线缆，浅景深）+ 缓慢流动的光 + 微尘 | `plates/tech_title.jpg` 底图 |
-| `plain` | 其他题材 | 只有渐变和颗粒 | 简洁 |
+| 主题 | 适合 | 画面 | 片名、片尾 | 主字体 |
+|---|---|---|---|---|
+| `finance`（默认）· 剪纸印刷 | 财经、民生、政策 | 暖灰底，剪纸色块，钞票边框，粉笔涂鸦，前景是 ¥ 钞票和硬币；卡片是厚纸片，亮色柠檬黄 | 钞票边框底图上的斜切大字 | 优设标题黑 |
+| `press` · 报刊纸本 | 历史、人文、社会、国际 | 旧报纸拼贴和牛皮纸，撕边纸条加胶带；数字是网点印刷红，重点用红框圈出 | 黑色宋体压印在奶油色纸条上，下面一道朱红线；片尾配一张老照片 | 思源宋体 |
+| `blueprint` · 工程蓝图 | AI、软件、互联网、工程、产品 | 蓝晒图纸，白色机械线稿，橙色尺寸线；卡片墙用图钉；白页是网格纸 | 线稿零件加尺寸线标注 | 思源黑体 |
+| `terminal` · 复古终端 | 网络安全、编程史、黑客、游戏 | CRT 显示器外框压在画面最上层，带扫描线和闪烁；琥珀色和绿色荧光字；计算器是 Win95 窗口 | 命令行逐字打出，带光标 | Fusion Pixel 像素体 |
+| `desk` · 桌面实物 | 生活、消费、个人理财、教程 | 胡桃木桌面，索引卡，便签，手机；数字和标题是手写 | 索引卡上手写，旁边贴便签 | 马善政手写体 |
+| `editorial` · 现代杂志 | 品牌、商业、设计、通用题材 | 米白纸面，超大粗黑体，只用一种品牌蓝做色块 | 大字号排版，侧边一块蓝色色块 | 思源黑体 Black |
 
-- 底图在 `public/plates/`。`dark` 的 `v` 在主题的几张底图里轮换；单个场景可以用 `bg.plate='plates/xxx.jpg'` 换底图，`bg.plate=False` 不用底图。项目专属的片名底图也这样换。
-- 新题材要新底图时，用图像生成做：暗场、四角有物、中心留空、浅景深、电影布光，1920×1080 以上。生成后检查中心区域干净，没有可读的文字和 Logo。
-- `tech` 下，`concept` 卡和 `formula6` 面板自动换成玻璃材质（半透明深色、细描边、顶部高光）。
-- 可以覆盖局部：`"theme": {"name": "tech", "pal": {"coral": "#e5533d"}, "dark": "<css 背景>"}`。
-- `"en_labels": false` 删掉所有英文副标（片名 `en`、卡片 `en`、片尾英文行）。
+- 旧名仍然可用：`tech` 等于 `blueprint`，`plain` 等于 `editorial`。
+- 底图在 `public/plates/`，纹理在 `public/tex/`（`fiber.jpg` 纸张纤维，`newsprint.jpg` 新闻纸），都是为这个技能生成的图像。每个主题有 `plates`（`dark` 的 `v` 在其中轮换）、`titlePlate`、`endPlate`、`paperPlate`。单个场景可以用 `bg.plate='plates/xxx.jpg'` 换底图，`bg.plate=False` 不用底图。项目专属的片名底图要和主题的材质一致，否则会跳戏。
+- 片名卡和片尾卡在 `src/skins.tsx`，每个主题一套。`titlecard` 的 `l1`、`l2`、`l2b`、`q` 通用；`y1`、`y2`、`s2`、`spy`、`sp1x` 等位置参数只对 `finance` 有效，其他主题自动排版。
+- `terminal` 的 `term_crt_bezel.png`、`term_gui_bezel.png` 是显示器外框的透明遮罩，按底图自动叠加。换底图时要配一张新遮罩，否则外框不会压住内容。
+- 局部覆盖：`"theme": {"name": "press", "titlePlate": "plates/my_title.jpg", "acc": "#c23a2d"}`。对象里写的字段会覆盖预设里的同名字段，字段表见 `src/theme.tsx`。`pal` 是图标砖块用的强调色，也可以单独覆盖。
+- 自制新主题的底图：用图像生成，四角放物件、中心留空，材质要具体（纸张、木头、屏幕玻璃），光照统一，1920×1080 以上。每个主题至少做 `dark` 两张，`title`、`end`、`paper` 各一张。生成后检查中心区域是否干净，有没有可读的文字和 Logo。
+- `"en_labels": false`（默认）删掉所有英文副标，包括片名 `en`、卡片 `en` 和片尾英文行。
 
 ### 图标砖墙 `tiles` 和 tech 图标
 
@@ -206,7 +211,7 @@ sc.add('tiles', t, x=2900, y=520, cols=14, rows=8, ts=118, gap=26, seed=3, pop=[
 ```
 
 - 满屏的应用图标方块，表示"很多个"（插件、Skills、应用）。`ts` 方块边长，`gap` 间距，`seed` 随机排列，`stag` 从中心向外依次出现的延迟（默认 0.045），`lo` 未点亮方块的不透明度（默认 0.5），`pop=[[时刻, 个数], ...]` 分批点亮成彩色。中间压一张 `concept` 卡写名称。
-- `icon` 元素的 `src='tech:<名字>'` 画玻璃图标方块，名字有 `term` `chat` `file` `gear` `key` `lock` `warn` `cloud` `robot` `bolt` `mail` `search`。
+- `icon` 元素的 `src='tech:<名字>'` 画图标方块，名字有 `term` `chat` `file` `gear` `key` `lock` `warn` `cloud` `robot` `bolt` `mail` `search`。
 
 ## 镜头和特效
 
@@ -220,7 +225,7 @@ sc.add('tiles', t, x=2900, y=520, cols=14, rows=8, ts=118, gap=26, seed=3, pop=[
 |---|---|---|
 | `tag` | 柠檬黄小标签 | `txt` `c` `size` |
 | `txt` | 自由文字 | `txt` `size` `font` `grad` `italic` `en` |
-| `card` | 数据卡（深蓝底金边） | `label` `value` `unit` `sub` `icon` `theme` `count` |
+| `card` | 数据卡（深蓝底金边，`theme` 选配色，不跟随全局主题） | `label` `value` `unit` `sub` `icon` `theme` `count` |
 | `concept` | 大字概念卡 | `word` `en` `icon` `grad` |
 | `panel` | 3D 倾斜大面板 | `title` `en` `w` `h` `theme` `photo` |
 | `icon` | 2.5D 图标 | `src` `size` `label` `gray` |

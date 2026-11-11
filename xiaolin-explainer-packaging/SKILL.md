@@ -1,6 +1,6 @@
 ---
 name: xiaolin-explainer-packaging
-description: 小Lin说（Xiao Lin Shuo）风格的财经、科普讲解视频包装。包含 Remotion 版式组件库（巨型数字、卡片墙、白卡图表、整页文档荧光笔、真实网页截图荧光笔和聚光、真实 Logo、实体卡、大公式条、白底计算器、片名和章节卡、画中画、转场），财经和科技两套主题（科技主题用 3D 渲染底图），资料检索规范（每种版式要查的数据和原文、来源分级、事实文件模板、网页截图和原文定位脚本、Wikimedia Commons 照片和 Logo 下载脚本）、按台词关键词计时的分镜 API、分块渲染、人声加音乐加合成音效的混音，以及逐帧质检。适用场景：把出镜口播片段包装成小Lin说式的讲解画面；复刻或改进"一口气了解……"类视频的图形语言；给已有口播视频重做讲解包装。
+description: 小Lin说（Xiao Lin Shuo）风格的财经、科普讲解视频包装。包含 Remotion 版式组件库（巨型数字、卡片墙、白卡图表、整页文档荧光笔、真实网页截图荧光笔和聚光、真实 Logo、实体卡、大公式条、白底计算器、片名和章节卡、画中画、转场），6 套带实物质感底图的主题（财经剪纸印刷、人文报刊纸本、工程蓝图、复古终端、桌面实物、现代杂志，换一个词整片换风格），资料检索规范（每种版式要查的数据和原文、来源分级、事实文件模板、网页截图和原文定位脚本、Wikimedia Commons 照片和 Logo 下载脚本）、按台词关键词计时的分镜 API、分块渲染、人声加音乐加合成音效的混音，以及逐帧质检。适用场景：把出镜口播片段包装成小Lin说式的讲解画面；复刻或改进"一口气了解……"类视频的图形语言；给已有口播视频重做讲解包装。
 ---
 
 # 小Lin说讲解包装
@@ -20,7 +20,7 @@ description: 小Lin说（Xiao Lin Shuo）风格的财经、科普讲解视频包
 
 - Node ≥ 18、ffmpeg、python3（带 numpy 和 Pillow）。`npm install` 和第一次渲染需要联网（Remotion 会下载 Chrome）。
 - 只在 macOS（Apple Silicon）上实测过。其他系统默认用软件渲染 `swangle`，可以用环境变量 `REMOTION_GL` 改。
-- 字体：模板带 6 个 SIL OFL 字体，许可证见 `templates/engine/public/fonts/LICENSES.txt`。优设标题黑（`YouShe.ttf`）可能不在包里。`new_project.sh` 会在 `$YOUSHE_TTF` 和常见字体目录里找；找不到时，提示用户从 https://www.uisdc.com/uisdc-first-free-font 下载，存为 `public/fonts/YouShe.ttf`。缺这个字体时，标题和字幕回退到思源黑体最粗字重（900），没有斜切，风格会明显变弱。
+- 字体：模板带 8 个 SIL OFL 字体，许可证见 `templates/engine/public/fonts/LICENSES.txt`。优设标题黑（`YouShe.ttf`）可能不在包里。`new_project.sh` 会在 `$YOUSHE_TTF` 和常见字体目录里找；找不到时，提示用户从 https://www.uisdc.com/uisdc-first-free-font 下载，存为 `public/fonts/YouShe.ttf`。缺这个字体时，标题和字幕回退到思源黑体最粗字重（900），没有斜切，风格会明显变弱。
 - Remotion 许可：个人、3 人以内的公司和非营利组织可以免费使用，包括商用。4 人以上的公司要买公司授权（https://www.remotion.pro/license）。
 
 ## 工作流
@@ -30,7 +30,7 @@ description: 小Lin说（Xiao Lin Shuo）风格的财经、科普讲解视频包
 - 底图：有没有固定在用的底图（深色底、片名底、片尾底、白纸底）？
   - 有：放进 `public/plates/`，写进 `project.json` 的 `theme`（见 `layouts.md` 的"主题"）。
   - 要新生成：请对方给频道名或品牌色、题材关键词、1–3 张喜欢的参考图，按"主题"一节的要求生成，先给对方看底图再往下做。
-  - 都没有：用默认主题，财经和民生用 `finance`，AI、软件和互联网用 `tech`。
+  - 都没有：从 6 套主题里选，财经和民生用 `finance`，历史人文用 `press`，AI、软件和互联网用 `blueprint`，网络安全和编程史用 `terminal`，生活消费用 `desk`，其他题材用 `editorial`。拿不准时，用演示工程把候选主题各渲一组关键帧给对方挑（见 `layouts.md` 的"主题"）。
 - 台标和角标：`brand.logo` 填什么。出镜画面是不是 AI 生成的？是的话 `brand.label` 必须保留。
 - 真实素材：有没有指定要放的报道、报告、网页截图、产品 Logo、实拍或录屏视频？没有指定的，按 `research.md` 自己找。
 
@@ -47,7 +47,7 @@ description: 小Lin说（Xiao Lin Shuo）风格的财经、科普讲解视频包
 <skill>/scripts/new_project.sh <工程目录>          # 加 --demo 会生成 4 段假出镜和示例分镜，用来冒烟测试
 ```
 
-然后写 `timeline.json`。转写每段出镜视频，定出 `tin`/`tout`，剪掉首尾静音；中间的口误写进 `cuts`。改 `project.json` 的 `brand`、`music` 和 `theme`（财经、民生用 `finance`，AI、软件、互联网用 `tech`，见 `layouts.md` 的"主题"）。
+然后写 `timeline.json`。转写每段出镜视频，定出 `tin`/`tout`，剪掉首尾静音；中间的口误写进 `cuts`。改 `project.json` 的 `brand`、`music` 和 `theme`（6 套主题和适用题材见 `layouts.md` 的"主题"）。
 
 ### 3. 规划场景（先写表，再写代码）
 

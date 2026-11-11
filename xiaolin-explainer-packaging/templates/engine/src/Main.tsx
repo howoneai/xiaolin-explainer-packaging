@@ -7,6 +7,7 @@ import {ELS6} from './els6';
 import {TECH_ELS} from './bg_tech';
 import {REAL_ELS} from './els_real';
 import {TH} from './theme';
+import {CrtFx, ENDS, TITLES} from './skins';
 const ELS: any = {...ELS5, ...ELS6, ...TECH_ELS, ...REAL_ELS};
 import D from './data/shots.json';
 
@@ -69,7 +70,10 @@ const EndCard: React.FC<any> = ({e, t}) => {
     </AbsoluteFill>
   );
 };
-const SCREEN: any = {titlecard: TitleCard, endcard: EndCard, ruler: Ruler};
+// each theme has its own title and end card (skins.tsx); TitleCard / EndCard stay as the generic fallback
+const TitleAny: React.FC<any> = (p) => {const C = TITLES[TH.title] ?? TitleCard; return <C {...p} />;};
+const EndAny: React.FC<any> = (p) => {const C = ENDS[TH.end] ?? EndCard; return <C {...p} />;};
+const SCREEN: any = {titlecard: TitleAny, endcard: EndAny, ruler: Ruler};
 
 // ---------------------------------------------------------------- element dispatcher
 const ElView: React.FC<{e: any; t: number; xb?: number}> = ({e, t, xb = 0}) => {
@@ -124,6 +128,7 @@ const SceneView: React.FC<{sc: any; t: number}> = ({sc, t}) => {
         </AbsoluteFill>
       )}
       <FgBokeh sc={sc} cam={cam} lag={camAt(sc.cam, t - 0.45)} t={t} />
+      <CrtFx sc={sc} t={t} />
       {screen.length > 0 && <AbsoluteFill style={{zIndex: 5}}>{screen.map((e: any, i: number) => <ElView key={i} e={e} t={t} />)}</AbsoluteFill>}
       {flash > 0 && <AbsoluteFill style={{background: '#fff', opacity: flash, zIndex: 9}} />}
     </AbsoluteFill>
@@ -144,13 +149,13 @@ const ARoll: React.FC<{t: number; b: any}> = ({t, b}) => {
     // v6: tall rounded-rect PiP on the left (her 2025+ panel layout), about 450x760
     const L = b.px ?? 110, T = b.py ?? 150, w = b.pw ?? 450, h = b.ph ?? 740, k = b.pipk ?? 0.78;
     const p = prog(t, b.t0, 0.4), vw = 1920 * k, vh = 1097 * k;
-    outer = {position: 'absolute', left: L, top: T, width: w, height: h, borderRadius: 22, overflow: 'hidden', zIndex: 40, border: '4px solid rgba(240,232,255,.85)', boxShadow: '0 24px 60px rgba(0,0,0,.6)', transform: `translateX(${(1 - eout(p)) * -560}px)`, background: '#222'};
+    outer = {position: 'absolute', left: L, top: T, width: w, height: h, borderRadius: TH.name === 'finance' ? 22 : TH.name === 'desk' ? 10 : 0, overflow: 'hidden', zIndex: 40, border: `4px solid ${TH.pip?.rect ?? 'rgba(240,232,255,.85)'}`, boxShadow: '0 24px 60px rgba(0,0,0,.6)', transform: `translateX(${(1 - eout(p)) * -560}px)`, background: '#222'};
     inner = {position: 'absolute', left: w / 2 - vw * (b.pfx ?? 0.5), top: (b.fy ?? 250) - vh * (b.pfy ?? 0.36), width: vw, height: vh};
   } else if (mode === 'pip') {
     const d = b.pipd ?? 330, [cx, cy] = b.pip === 'br' ? [1690, 836] : b.pip === 'tr' ? [1690, 250] : [222, 836];
     const p = prog(t, b.t0, 0.35), k = (b.pipk ?? 0.62);
     const vw = 1920 * k, vh = 1097 * k;
-    outer = {position: 'absolute', left: cx - d / 2, top: cy - d / 2, width: d, height: d, borderRadius: '50%', overflow: 'hidden', zIndex: 40, border: '5px solid #efe0a8', boxShadow: '0 14px 40px rgba(0,0,0,.6)', transform: `scale(${back(p)})`, background: '#222'};
+    outer = {position: 'absolute', left: cx - d / 2, top: cy - d / 2, width: d, height: d, borderRadius: '50%', overflow: 'hidden', zIndex: 40, border: `5px solid ${TH.pip?.ring ?? '#efe0a8'}`, boxShadow: '0 14px 40px rgba(0,0,0,.6)', transform: `scale(${back(p)})`, background: '#222'};
     inner = {position: 'absolute', left: d / 2 - vw * (b.pfx ?? 0.5), top: d / 2 - vh * (b.pfy ?? 0.4), width: vw, height: vh};
   } else if (mode === 'full') {
     const z = zoomAt(b.zoom, t);

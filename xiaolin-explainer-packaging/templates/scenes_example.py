@@ -17,7 +17,6 @@ def title():
 def chapter():
     C = G('CH1'); name = '涨价的三个原因'
     sc = Scene('ch1', C.t0, {'type': 'title'}, sway=0)
-    sc.add('tag', C.t0 + 0.02, layer='screen', x=960, y=330, txt='PART 01', c='lime', size=40, anim='pop')
     sc.add('titlecard', C.t0 + 0.02, layer='screen', l1='', l2=name, s2=150, y2=420, en='Three Reasons Behind the Price',
            ye=640, se=36, slam=0.12, sp1x=220, sp2x=1620)
     sc.fx(C.t0 + 0.2, 'shake', a=10, d=0.25); sfx(C.t0 + 0.12, 'whoosh')

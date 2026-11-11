@@ -6,17 +6,20 @@
 import React from 'react';
 import {AbsoluteFill, Img} from 'remotion';
 import {clamp, img, rnd} from './lib';
+import {TH} from './theme';
+const LX = () => TH.lux ?? {};
 
 const lim = (v: number, m: number) => Math.max(-m, Math.min(m, v));
 
 // one plate, slightly oversized so it can drift and parallax without showing edges
-export const Plate: React.FC<{src: string; cam: any; lt: number; flip?: boolean; bright?: number; push?: number; dof?: boolean; ox?: number; oy?: number; s0?: number}> = ({
-  src, cam, lt, flip, bright = 1, push = 0.004, dof = true, ox = 0, oy = 0, s0 = 1.1,
+// still=true (terminal: the plate is the monitor itself) keeps the plate fixed so a bezel overlay can sit on it
+export const Plate: React.FC<{src: string; cam: any; lt: number; flip?: boolean; bright?: number; push?: number; dof?: boolean; ox?: number; oy?: number; s0?: number; still?: boolean}> = ({
+  src, cam, lt, flip, bright = 1, push = 0.004, dof = true, ox = 0, oy = 0, s0 = 1.1, still = false,
 }) => {
-  const px = lim(-(cam.x - 960) * 0.035, 80) + ox, py = lim(-(cam.y - 540) * 0.035, 45) + oy;
-  const zs = 1 + (cam.s - 1) * 0.3;
-  const s = s0 * zs * (1 + Math.min(0.05, lt * push));
-  const blur = dof && cam.s > 1.04 ? Math.min(5, (cam.s - 1.04) * 9) : 0;
+  const px = still ? 0 : lim(-(cam.x - 960) * 0.035, 80) + ox, py = still ? 0 : lim(-(cam.y - 540) * 0.035, 45) + oy;
+  const zs = still ? 1 : 1 + (cam.s - 1) * 0.3;
+  const s = still ? 1 : s0 * zs * (1 + Math.min(0.05, lt * push));
+  const blur = !still && dof && cam.s > 1.04 ? Math.min(5, (cam.s - 1.04) * 9) : 0;
   return (
     <Img src={img(src)} style={{position: 'absolute', left: 0, top: 0, width: 1920, height: 1080, objectFit: 'cover',
       transform: `translate(${px.toFixed(1)}px,${py.toFixed(1)}px) scale(${s.toFixed(4)}) scaleX(${flip ? -1 : 1})`,
@@ -64,29 +67,32 @@ export const Dust: React.FC<{t: number; cam: any; n?: number; seed?: number; o?:
 export const PlateDark: React.FC<{bg: any; t: number; lt: number; cam: any; plates: string[]; Grain: any; Vignette: any}> = ({bg, t, lt, cam, plates, Grain, Vignette}) => {
   const v = bg.v || 0, n = plates.length;
   const src = typeof bg.plate === 'string' ? bg.plate : plates[v % n];
-  const flip = bg.flip ?? (Math.floor(v / n) % 2 === 1);
+  const L = LX(), still = !!L.still;
+  const flip = still ? false : bg.flip ?? (Math.floor(v / n) % 2 === 1);
+  const lo = bg.light ?? L.light ?? 0.26, dust = bg.dust === false ? 0 : L.dust ?? 0.85;
   return (
     <AbsoluteFill style={{background: '#06070a', overflow: 'hidden'}}>
-      <Plate src={src} cam={cam} lt={lt} flip={flip} bright={bg.bright ?? 0.92} />
-      <LightDrift t={t} cam={cam} o={bg.light ?? 0.26} seed={v + 3} />
-      {bg.dust !== false && <Dust t={t} cam={cam} seed={v + 11} o={0.85} />}
-      <Grain t={t} o={0.06} />
-      <Vignette k={0.42} />
+      <Plate src={src} cam={cam} lt={lt} flip={flip} bright={bg.bright ?? L.bright ?? 0.92} still={still} />
+      {lo > 0 && <LightDrift t={t} cam={cam} o={lo} seed={v + 3} a={L.a} b={L.b} />}
+      {dust > 0 && <Dust t={t} cam={cam} seed={v + 11} o={dust} warm={!!L.warm} />}
+      <Grain t={t} o={L.grain ?? 0.06} />
+      <Vignette k={L.vig ?? 0.42} />
     </AbsoluteFill>
   );
 };
 
 // title / chapter card on a plate: continuous slow push-in, light, dust
 export const PlateTitle: React.FC<{bg: any; t: number; lt: number; src: string; Grain: any; Vignette: any}> = ({bg, t, lt, src, Grain, Vignette}) => {
-  const cam = {x: 960, y: 540, s: 1};
+  const cam = {x: 960, y: 540, s: 1}, L = LX(), still = !!L.still;
   const s0 = (bg.s0 ?? 1.03) + clamp(lt / 9) * (bg.ds ?? 0.07);
+  const lo = bg.light ?? L.light ?? 0.18, dust = bg.dust === false ? 0 : L.dust ?? 1;
   return (
     <AbsoluteFill style={{background: '#050608', overflow: 'hidden'}}>
-      <Plate src={src} cam={cam} lt={0} s0={s0} oy={bg.oy ?? 0} bright={bg.bright ?? 1} dof={false} />
-      <LightDrift t={t} cam={cam} o={bg.light ?? 0.18} seed={5} />
-      <Dust t={t} cam={cam} n={46} seed={21} warm={!!bg.warm} />
-      <Grain t={t} o={0.06} />
-      <Vignette k={0.5} />
+      <Plate src={src} cam={cam} lt={0} s0={s0} oy={bg.oy ?? 0} bright={bg.bright ?? 1} dof={false} still={still} />
+      {lo > 0 && <LightDrift t={t} cam={cam} o={lo} seed={5} a={L.a} b={L.b} />}
+      {dust > 0 && <Dust t={t} cam={cam} n={46} seed={21} o={dust} warm={bg.warm ?? !!L.warm} />}
+      <Grain t={t} o={L.grain ?? 0.06} />
+      <Vignette k={Math.min(0.5, (L.vig ?? 0.42) + 0.06)} />
     </AbsoluteFill>
   );
 };
@@ -94,8 +100,8 @@ export const PlateTitle: React.FC<{bg: any; t: number; lt: number; src: string; 
 // light page on a plate (soft window light on paper)
 export const PlatePaper: React.FC<{bg: any; t: number; lt: number; cam: any; src: string; Grain: any; Vignette: any}> = ({bg, t, lt, cam, src, Grain, Vignette}) => (
   <AbsoluteFill style={{background: '#f2f1ee', overflow: 'hidden'}}>
-    <Plate src={src} cam={cam} lt={lt} flip={!!bg.flip} bright={bg.bright ?? 1.02} push={0.003} />
-    <Grain t={t} o={0.05} />
-    <Vignette k={0.14} />
+    <Plate src={src} cam={cam} lt={lt} flip={!!bg.flip} bright={bg.bright ?? 1.02} push={0.003} still={!!LX().still} />
+    <Grain t={t} o={LX().grain ?? 0.05} />
+    <Vignette k={Math.min(0.14, LX().vig ?? 0.14)} />
   </AbsoluteFill>
 );
