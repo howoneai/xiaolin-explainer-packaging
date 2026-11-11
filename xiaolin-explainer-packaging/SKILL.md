@@ -1,6 +1,6 @@
 ---
 name: xiaolin-explainer-packaging
-description: 小Lin说（Xiao Lin Shuo）风格的财经、科普讲解视频包装。包含 Remotion 版式组件库（巨型数字、卡片墙、白卡图表、整页文档荧光笔、真实网页截图荧光笔和聚光、真实 Logo、实体卡、大公式条、白底计算器、折线图、时间轴、饼图和环形图、流程图、树状拆解、世界地图（国家上色和航线）、左右对比、关系图（持股和资金流）、片名和章节卡、画中画、转场），6 套带实物质感底图的主题（财经剪纸印刷、人文报刊纸本、工程蓝图、复古终端、桌面实物、现代杂志，换一个词整片换风格），资料检索规范（每种版式要查的数据和原文、来源分级、事实文件模板、网页截图和原文定位脚本、Wikimedia Commons 照片和 Logo 下载脚本）、按台词关键词计时的分镜 API、分块渲染、人声加音乐加合成音效的混音，以及逐帧质检。适用场景：把出镜口播片段包装成小Lin说式的讲解画面；复刻或改进"一口气了解……"类视频的图形语言；给已有口播视频重做讲解包装。
+description: 小Lin说（Xiao Lin Shuo）风格的财经、科普讲解视频包装。包含 Remotion 版式组件库（巨型数字、卡片墙、白卡图表、整页文档荧光笔、真实网页截图荧光笔和聚光、真实 Logo、实体卡、大公式条、白底计算器、折线图、时间轴、饼图和环形图、流程图、树状拆解、世界地图（国家上色和航线）、左右对比、关系图（持股和资金流）、片名和章节卡、画中画、转场），每期按选题定制画法（版式只当骨架，压在选题的真实照片上，放本期生成的道具：道具骑在折线头上、把实物切成饼图、载具沿航线开、象形图堆叠和网格、角色节点和沿边流动的道具），6 套带实物质感底图的主题（财经剪纸印刷、人文报刊纸本、工程蓝图、复古终端、桌面实物、现代杂志，换一个词整片换风格），资料检索规范（每种版式要查的数据和原文、来源分级、事实文件模板、网页截图和原文定位脚本、Wikimedia Commons 照片和 Logo 下载脚本）、按台词关键词计时的分镜 API、分块渲染、人声加音乐加合成音效的混音，以及逐帧质检。适用场景：把出镜口播片段包装成小Lin说式的讲解画面；复刻或改进"一口气了解……"类视频的图形语言；给已有口播视频重做讲解包装。
 ---
 
 # 小Lin说讲解包装
@@ -13,7 +13,8 @@ description: 小Lin说（Xiao Lin Shuo）风格的财经、科普讲解视频包
 
 - `references/style-bible.md`：她的图形语言、6 条硬规则、色板、字体、画中画、转场统计、声音电平。规划场景前必须读。
 - `references/research.md`：每种版式要查什么资料、来源分级、去哪里查、真实网页截图和 Logo 怎么拿、图片和商标权利。规划场景时读。
-- `references/layouts.md`：每个版式组件的参数、示例调用和陷阱。写分镜时读。v7 新增的 8 个版式（`line6` `timeline6` `pie6` `flow6` `tree6` `map6` `vs6` `graph6`）的完整示例在 `templates/scenes_gallery.py`，配套演示时间线是 `templates/timeline_gallery.json`。
+- `references/treatment.md`：每期按选题定制画法。她原片里哪些固定、哪些按选题变，画法设计表，照片背景，道具的生成提示词（按主题画风），每个骨架的素材槽。规划场景时必须读。
+- `references/layouts.md`：每个版式组件的参数、示例调用和陷阱。写分镜时读。v7 新增的 8 个版式（`line6` `timeline6` `pie6` `flow6` `tree6` `map6` `vs6` `graph6`）的完整示例在 `templates/scenes_gallery.py`，配套演示时间线是 `templates/timeline_gallery.json`。骨架加照片和道具的完整示例在 `templates/scenes_treat.py`（时间线 `templates/timeline_treat.json`，素材 `templates/demo_assets/`），写分镜时以它为准。
 - `references/storyboard-api.md`：`timeline.json` 和 `project.json` 格式、分镜 API、关键词计时、审片和渲染命令。第一次搭工程时读。
 
 ## 环境
@@ -44,24 +45,26 @@ description: 小Lin说（Xiao Lin Shuo）风格的财经、科普讲解视频包
 ### 2. 建工程
 
 ```bash
-<skill>/scripts/new_project.sh <工程目录>          # 加 --demo 会生成 4 段假出镜和示例分镜，用来冒烟测试
+<skill>/scripts/new_project.sh <工程目录>          # 加 --demo 会生成 4 段假出镜、示例分镜、版式图鉴和画法演示（含演示道具和照片），用来冒烟测试
 ```
 
 然后写 `timeline.json`。转写每段出镜视频，定出 `tin`/`tout`，剪掉首尾静音；中间的口误写进 `cuts`。改 `project.json` 的 `brand`、`music` 和 `theme`（6 套主题和适用题材见 `layouts.md` 的"主题"）。
 
-### 3. 规划场景（先写表，再写代码）
+### 3. 规划场景和画法（先写表，再写代码）
 
-读 `style-bible.md` 和 `research.md` 后，列一张表：场景名 | 覆盖哪几句 | 版式 | 深色还是白纸 | 画中画方式 | 需要的资料。检查以下 5 点：
+读 `style-bible.md`、`research.md` 和 `treatment.md` 后，列一张表：场景名 | 覆盖哪几句 | 骨架（版式） | 背景（选题真实画面） | 道具和动作（选题隐喻） | 画中画方式 | 需要的资料。版式只是骨架，每个图形场景都要按 `treatment.md` 定画法。检查以下 7 点：
 
 - 一个场景跨 2–8 句，不要一句一页。
 - 每个场景都能指出"主体被裁切"或"主体占画面 60% 以上"（R1）。
 - 每 2–3 个深色场景之间有 1 个白纸场景（R2）。
 - 引用原文的地方用真实画面：来源是网页就用 `webshot` 截图，PDF 和纸质文件用 `docpage` 逐字原文。讲到具体产品、平台时放真实 Logo（`logo`），不要用文字标签代替。
 - 开场钩子、观点句、转折句和结尾留给全屏出镜，不要全部盖上讲解画面。
+- 每个图形场景至少有一样本期专属的东西：选题照片、本期道具、真实 Logo 或截图。只有骨架加数字的场景不合格。
+- 道具承担意思（拿掉之后意思变弱），相邻场景的画法动作不重样。
 
 ### 4. 查资料
 
-按场景表的"需要的资料"一列逐条查，方法见 `research.md`。每条结果写进事实文件，带编号、原文、来源链接和日期。照片用 `scripts/commons_photo.py`，网页截图和原文坐标用 `scripts/web_shot.mjs --boxes`，Logo 用 `scripts/commons_logo.py`。
+按场景表的"需要的资料"一列逐条查，方法见 `research.md`。背景照片和道具也在这一步备齐：照片用 `scripts/commons_photo.py`；道具按 `treatment.md` 第 4 节的画风后缀用 `generate_image` 生成透明 PNG，放进 `public/props/<选题>/`，先拼一张图检查画风是否统一。每条结果写进事实文件，带编号、原文、来源链接和日期。照片用 `scripts/commons_photo.py`，网页截图和原文坐标用 `scripts/web_shot.mjs --boxes`，Logo 用 `scripts/commons_logo.py`。
 
 查完回改场景表：找不到逐字原文的，不用 `docpage`；凑不齐同口径数据的，不用 `paper`；拍不到当时版本的页面，不用 `webshot`。台词里的数字和事实文件不一致时，先改台词，再生成或重剪出镜片段。
 
@@ -106,6 +109,7 @@ python3 <skill>/scripts/audit.py video.mp4 72        # 视频帧和静帧逐帧�
 5. 没有方框字（缺字形）、没有换行成竖排的词、没有溢出卡片的字。
 6. 数字、单位和原文与事实文件一致，来源行存在，CC BY 照片有署名。截图里没有未模糊的图片社照片，Logo 没被改色或变形。
 7. 白纸场景和深色场景交替出现。
+8. 遮住道具和背景只看骨架时，如果和别的选题没有区别，说明画法没做。道具画风和主题一致，同一期的道具是一套。
 
 ## 已知陷阱
 

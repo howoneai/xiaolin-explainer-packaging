@@ -160,11 +160,11 @@ show(sc, t0, t1, aroll='piprect')
 
 ## v7 扩展版式（els7.tsx）
 
-8 个版式都读主题 token，6 套主题下都能直接用。共同规则：
+8 个版式都读主题 token，6 套主题下都能直接用。它们是**骨架**：直接用只会得到通用图表，每期必须按 `treatment.md` 放上选题的照片背景和道具。每个版式的素材槽写在各小节末尾，完整用法见 `templates/scenes_treat.py`。共同规则：
 - 折线图、饼图、地图画在图表纸面上（和 `paper` 同一种材质，有 `title`、`kicker`、`unit`、`src`）。时间轴、流程图、树状图、对比、关系图的方块用卡片墙同款的主题卡片。
 - `focus=[[时刻, 序号或 id], ...]` 点亮当前项，其他项变暗。`-1` 表示全部点亮。
 - 每一项都可以带自己的 `t`，用 `S.k('关键词', -0.2)` 卡在台词上。
-- 完整示例在 `templates/scenes_gallery.py`，对应的演示时间线是 `templates/timeline_gallery.json`。用 `python3 story_core.py timeline_gallery.json scenes_gallery.py` 生成分镜。
+- 只有骨架的示例在 `templates/scenes_gallery.py`（时间线 `templates/timeline_gallery.json`）。骨架加照片和道具的示例在 `templates/scenes_treat.py`（时间线 `templates/timeline_treat.json`，素材在 `templates/demo_assets/`），写分镜时以它为准。
 - 卡片底边的屏幕 y 要 ≤ 900，避开字幕。
 
 ### `line6` 折线图
@@ -179,6 +179,7 @@ sc.add('line6', t, x=960, y=515, w=1640, h=870, title='咖啡豆价格指数', k
 - 纵轴刻度自动取整（1、2、2.5、5 的倍数）。`min`、`max`、`ystep` 可以手动指定，`yt=False` 隐藏刻度，`xstep` 控制横轴标签的间隔。
 - `bands`：按横轴序号 `a` 到 `b` 加底色带，带上方显示 `l`。`pins`：在第 `i` 个点上钉一个标签，`below=True` 时标签在点的下方。
 - 第一条线下方默认有浅色填充，`area=False` 关闭。
+- 素材槽：`series[i].rider = dict(src, w=150, orient=0.5, hop=7, ay=0.86)`。道具骑在线头上随线前进，`orient` 是跟随线段斜率转动的比例，`ay` 是道具的落脚点（占道具高度的比例）。
 
 ### `timeline6` 时间轴
 ```python
@@ -187,7 +188,7 @@ sc.add('timeline6', t, x=1100, y=540, items=[dict(y='1652', l='第一家咖啡�
 ```
 - 横轴先长出来，事件卡在轴的上下交替出现（`side='up'|'down'` 可以手动指定），年份写在卡的另一侧。
 - 宽度是 `2*pad + gap*(n-1)`，5 个以上事件会比画面宽，这时用 `sc.cam` 跟着当前事件平移，最后可以拉远（`s=0.9`）显示整条轴。
-- 卡片可以带 `icon`（图标路径）。
+- 素材槽：`items[i].icon`，放本期道具（实物）而不是通用图标。
 
 ### `pie6` 饼图和环形图
 ```python
@@ -198,6 +199,7 @@ sc.add('pie6', t, x=960, y=515, w=1600, h=870, title='一杯咖啡的成本', sr
 - 扇区按顺序扫开，右侧是图例（色块、名称、百分比）。`hi` 把一个扇区往外推出，同时点亮对应的图例行。
 - `donut=0` 是实心饼图。`center` 只在环形图里显示。占比小于 `minIn`（默认 7%）的扇区不在扇区上写百分比。
 - 百分比按 `v` 的总和自动算，`s` 可以覆盖图例里显示的值，`p` 可以覆盖扇区上的文字。
+- 素材槽：`img` 放一张正俯视的圆形实物图（拿铁、披萨、蛋糕、硬币），按扇区切开；`tint`（默认 0.2）是扇区色的叠加强度，`iz` 是图片放大倍数。用 `img` 时一般设 `donut=0`。
 
 ### `flow6` 流程图
 ```python
@@ -207,6 +209,7 @@ sc.add('flow6', t, x=960, y=640, steps=[dict(l='种植', t=S.k('种植')), ..., 
 - 每一步出现前，先画出指向它的箭头。`al` 是箭头上的小字。每张卡左上角有步骤号，`num=False` 关闭。
 - `loop` 从最后一步画一条弧线回到第一步（`from`、`to` 可以改），弧线下方显示标签。
 - 宽度是 `n*bw + (n-1)*gap`，5 步以内能放进一个画面。
+- 素材槽：`bare=True` 不画卡片，每步只留 `steps[i].img`（实物道具）、标签和箭头。选题里每一步都对应一个看得见的东西时，优先用 `bare`。
 
 ### `tree6` 树状拆解
 ```python
@@ -217,6 +220,7 @@ sc.add('tree6', t, x=960, y=545, root=root, bw=320, bh=150, gx=46, lv=300, focus
 - 从上往下逐层展开，连线是直角折线。`op` 是分支上的运算符徽章（`+`、`−`、`×`），适合"利润 = 收入 − 成本"这类拆解。
 - 节点不写 `t` 时，按层级加同级序号的间隔自动入场。`focus` 可以用节点 `id`，也可以用深度优先顺序的序号。
 - 宽度按叶子数算：`叶子数*bw + (叶子数-1)*gx`。最多 3 层、6 片叶子，再多就拆成两个镜头。
+- 素材槽：节点 `icon`，放在卡片左侧。
 
 ### `map6` 世界地图（示意图）
 ```python
@@ -229,6 +233,7 @@ sc.add('map6', t, x=960, y=515, w=1700, h=900, title='咖啡从哪里来', view=
 - `view=[西经, 南纬, 东经, 北纬]` 裁出要显示的范围，按比例放进纸面。`hi` 用 ISO 3166 三位代码给国家上色，`l` 和 `at`（经纬度）加国名标签。
 - `routes` 是带箭头的弧线航线，`bend` 控制弯曲方向和程度，`flow=True` 时画完后有圆点沿线移动，`l` 是线中间的标签。`pts` 是脉冲圆点加标签，`side` 是标签方位（`r`、`l`、`t`、`b`）。
 - `surface='none'` 不画纸面，陆地直接画在背景上。
+- 素材槽：`routes[i].vehicle = dict(src, w=150, orient=0.5, ay=0.6, stay=False, loop=False, sp=0.22)`，载具（货轮、飞机、卡车）沿航线开，边开边画线，耗时 `d`（有载具时默认 2.4 秒）；到港后淡出，箭头随后出现，`stay=True` 时留在终点。`pts[i].img` 和 `iw` 用道具（麻袋、人物）代替脉冲圆点。多条航线错开 0.4 秒左右出发，最后一条要在场景结束前 1 秒到港。
 - **合规**：这是低精度示意图，不符合中国大陆公开出版地图的审核要求。台湾已并入中国着色，但南海诸岛、藏南、阿克赛钦等区域的边界都没有按中国标准地图绘制。凡是涉及中国疆域的地图，必须改用自然资源部标准地图服务系统（bzdt.ch.mnr.gov.cn）的图片，并在画面上标注审图号。
 
 ### `vs6` 左右对比
@@ -239,6 +244,7 @@ sc.add('vs6', t, x=960, y=515, w=1720, h=760,
 ```
 - 两张大卡加中间的 VS 徽章（`vs` 可以换成别的字，比如"≈"或"→"）。每侧有名称（可加 `flag` 国旗或 `icon`）、大数字 `v` 和单位 `u`、说明 `s`、逐条出现的要点 `pts`。
 - 适合两国、两家公司、两种方案、前后变化的对比。三项以上用 `wall` 或 `paper`。
+- 素材槽：`a/b.pic` 是每侧右上角的插画（店面、产品、人物）；`a/b.row = dict(src, n, t, iw=84, dt=0.07)` 在卡片底部排一排象形图标，用个数表示数量（比如每个杯子代表 100 杯）。
 
 ### `graph6` 关系图
 ```python
@@ -249,6 +255,32 @@ sc.add('graph6', t, x=960, y=570, w=1800, h=900, nodes=nodes, edges=edges, focus
 - 节点坐标是元素内部坐标（左上角为 0,0，`x`、`y` 是节点中心）。`round=True` 是圆形节点（直径 `d`）。节点可以放 `logo`（真实 Logo）、`flag`（国旗）或 `icon`。
 - 边是带箭头的曲线，`bend` 控制弯曲（两节点之间来回两条边各设 `bend=0.5`，会分到两侧），`two=True` 双向箭头，`dash=True` 虚线，`flow=True` 有圆点沿线流动（适合表示资金流），`l` 是线中间的标签。
 - 适合股权结构、资金流向、阵营和联盟、供应链。节点最好不超过 7 个。
+- 素材槽：节点 `img` 和 `iw` 把节点画成角色或实物（不画方块，标签在下方）；`mv=[[时刻, x, y], ...]` 让节点移动（公司气泡碰撞、合并）；边 `dot` 和 `dw` 用道具（金币、麻袋、信封）代替流动圆点。
+
+## v8 道具（els8.tsx）
+
+### `prop` 单个道具
+```python
+sc.add('prop', t, x=640, y=650, src='props/openclaw/lobster.png', w=420, idle='sway', anim='pop', out=t2, od=0.05)
+sc.add('prop', t2, x=760, y=560, src='props/openclaw/envelope.png', w=110, to=[640, 170], arc=300, pd=0.75, ease='lin',
+       spinTo=420, sTo=0.55, fadeEnd=True, copies=6, dt=0.22, loop=True, gap=0.6, anim='none')
+```
+- 透明 PNG 道具，`w`（和可选的 `h`）是外框，图片等比放进框里。投影按主题自动加，`lift`（0–1）调投影深度，`noShadow=True` 关掉，`flip=True` 水平镜像。
+- 待机动作 `idle`：`sway`（左右摆）、`breathe`（呼吸缩放）、`shake`（抖）、`wobble`（晃）、`spin`（转），`amp` 是幅度，`sp` 是速度。Place 的 `anim`、`out`、`od`、`float`、`dim`、`lit` 照常可用。
+- 移动（相对 `x`、`y` 的位移）：`path=[[dx, dy], ...]` 折线路径，或 `to=[dx, dy]` 加 `arc`（抛物线高度，像素）。`pt` 是出发时刻（默认 `t`），`pd` 是耗时，`ease` 是 `io`、`out`、`lin`。`orient=True`（或 0–1 的比例）沿路径转向，`autoflip=True` 向左走时自动镜像，`hop` 加 `stride` 是走路的颠簸。`spinTo` 是全程转过的角度，`sTo` 是终点缩放，`fadeEnd=True` 在最后 15% 淡出。
+- `loop=True` 重复整段移动（`gap` 是两次之间的停顿）。`copies=n` 加 `dt` 是同一路径上的 n 个道具，依次出发，适合信封飞进垃圾桶、钞票流走这类场面。
+- 换姿势：同一角色的两个版本叠在同一位置，第一个用 `out` 在切换时刻退场，第二个在同一时刻 `anim='none'` 出现。
+
+### `stack6` 象形图
+```python
+sc.add('stack6', t, x=960, y=560, src='props/coffee/cup.png', unit=100, u='杯', iw=80, per=2,
+       cols=[dict(l='精品店', v=200, t=k1), dict(l='连锁店', v=1000, t=k2)], focus=[[k2, 1]])
+sc.add('stack6', t, x=960, y=575, src='props/openclaw/pkg.png', iw=74, sd=1.4, drop=120,
+       grid=dict(n=100, per=20, hi=37, alt='props/openclaw/pkg_bad.png', hiT=k, hiD=1.6, **{'from': 'random'}))
+```
+- 柱状模式：每 `unit` 个单位一个道具，逐个掉落堆成一柱（`sd` 是一柱的耗时，一柱超过 6 个道具时调到 1.2 秒以内，数值标签在一柱落完后才出现；`drop` 是掉落高度，`ov` 是上下重叠比例）。`per` 是一柱每行几个，每柱可设自己的 `src`、标签 `l`、数值文字 `s`。`focus` 压暗其他柱，`lab=False` 隐藏标签。
+- 网格模式：`n` 个道具排成每行 `per` 个，从 `hiT` 开始在 `hiD` 秒内把其中 `hi` 个换成 `alt` 图（`from='random'` 随机位置，`'start'` 从头开始）。换掉的那些默认加红色光晕（`fx` 可以改），其余的同时变灰（`dim=False` 关闭）。适合"每 100 个里有 37 个"这类占比。
+- 道具图要在 80 像素下也认得出：轮廓清楚、两种状态的颜色差别大。
 
 ## 片名、章节、片尾
 

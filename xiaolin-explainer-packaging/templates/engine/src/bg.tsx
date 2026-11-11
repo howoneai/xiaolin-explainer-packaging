@@ -167,7 +167,7 @@ export const BG: React.FC<{bg: any; t: number; cam: any; sc: any}> = ({bg, t, ca
   if (bg.type === 'broll') {
     const d = Math.max(1, (bg.t1 ?? sc.t0 + 8) - sc.t0), p = clamp(lt / d);
     const s = lerp(bg.s0 ?? 1.04, bg.s1 ?? 1.14, p), dx = lerp(bg.x0 ?? 0, bg.x1 ?? -30, p), dy = lerp(bg.y0 ?? 0, bg.y1 ?? 0, p);
-    const filt = bg.bw ? 'grayscale(1) contrast(1.15) brightness(0.92) sepia(0.18)' : `brightness(${bg.bright ?? 0.95}) saturate(${bg.sat ?? 1})`;
+    const filt = (bg.bw ? 'grayscale(1) contrast(1.15) brightness(0.92) sepia(0.18)' : `brightness(${bg.bright ?? 0.95}) saturate(${bg.sat ?? 1})`) + (bg.blur ? ` blur(${bg.blur}px)` : '');
     return (
       <AbsoluteFill style={{background: '#000'}}>
         {bg.video ? (
@@ -177,7 +177,7 @@ export const BG: React.FC<{bg: any; t: number; cam: any; sc: any}> = ({bg, t, ca
         ) : (
           <Img src={img(bg.img)} style={{position: 'absolute', inset: 0, width: 1920, height: 1080, objectFit: 'cover', filter: filt, transform: `scale(${s}) translate(${dx}px,${dy}px)`}} />
         )}
-        {bg.dim ? <AbsoluteFill style={{background: `rgba(10,10,16,${bg.dim})`}} /> : null}
+        {bg.dim ? <AbsoluteFill style={{background: TH.light && !bg.dark ? `rgba(244,240,232,${Math.min(0.86, bg.dim + 0.18)})` : `rgba(10,10,16,${bg.dim})`}} /> : null}
         <AbsoluteFill style={{background: 'linear-gradient(180deg, rgba(0,0,0,0) 62%, rgba(0,0,0,0.55) 100%)'}} />
         {bg.bw && <Grain t={t} o={0.16} />}
         <Vignette k={bg.bw ? 0.75 : 0.45} />

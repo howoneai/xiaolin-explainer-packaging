@@ -8,6 +8,7 @@ import {FlagSvg} from './els';
 import {EN, TH} from './theme';
 import {deskShadow, iconFx, Pin, phosphorTs, Ruled, Tape, torn} from './skins';
 import WORLD from './geo/world110.json';
+import {propShadow} from './els8';
 
 const bgOf = (x: any) => (x == null ? {} : typeof x === 'string' ? {background: x} : x);
 const mix = (a: number[], b: number[], l: number, al = 1) => `rgba(${lerp(a[0], b[0], l).toFixed(0)},${lerp(a[1], b[1], l).toFixed(0)},${lerp(a[2], b[2], l).toFixed(0)},${al})`;
@@ -87,7 +88,7 @@ const cSub = (lit: number) => mix(TH.card.sdim, TH.card.son, lit, 0.92);
 const cGlow = (lit: number, size: number) => (TH.card.glow && lit < 0.5 ? phosphorTs('51,255,136', size / 120) : undefined);
 const CardIcon: React.FC<{src: string; lit: number; style: any}> = ({src, lit, style}) => {
   const fx = iconFx(TH.card.icon, lit);
-  return <Img src={img(src)} style={{position: 'absolute', objectFit: 'contain', ...style, ...(fx ?? {filter: `grayscale(${1 - lit}) brightness(${0.55 + 0.45 * lit})`})}} />;
+  return <Img src={img(src)} style={{position: 'absolute', objectFit: 'contain', ...style, ...(fx ?? {filter: `saturate(${(0.6 + 0.4 * lit).toFixed(2)}) brightness(${(0.8 + 0.2 * lit).toFixed(2)}) drop-shadow(0 6px 8px rgba(0,0,0,.3))`})}} />;
 };
 
 // ---------------------------------------------------------------- shared: chart paper (the same surface as `paper`)
@@ -181,6 +182,11 @@ export const Line6: React.FC<any> = ({e, t}) => {
               if (p <= 0) return null;
               const f = p * (v.length - 1), i = Math.min(v.length - 2, Math.floor(f)), u = f - i;
               const x = lerp(X(i), X(i + 1), u), y = lerp(Y(v[i]), Y(v[i + 1]), u), c = s.c ?? seq(j);
+              if (s.rider) {
+                const R_ = typeof s.rider === 'string' ? {src: s.rider} : s.rider, rw = R_.w ?? 150, rh = R_.h ?? rw;
+                const ang = (Math.atan2(Y(v[i + 1]) - Y(v[i]), X(i + 1) - X(i)) * 180 / Math.PI) * (R_.orient ?? 0.5), bob = p < 1 ? Math.abs(Math.sin(t * 8)) * (R_.hop ?? 7) : 0;
+                return <g key={j} transform={`translate(${x.toFixed(1)},${(y - bob).toFixed(1)}) rotate(${ang.toFixed(2)})`}><image href={img(R_.src)} x={-rw / 2} y={-rh * (R_.ay ?? 0.86)} width={rw} height={rh} style={{filter: propShadow(0)}} /></g>;
+              }
               return <circle key={j} cx={x} cy={y} r={11} fill={c} stroke={paperBase()} strokeWidth={4} />;
             })}
           </svg>
@@ -279,7 +285,19 @@ export const Pie6: React.FC<any> = ({e, t}) => {
               if (q <= 0) return null;
               const ex = ((F0.cur === i ? F0.p : 0) + (F0.prev === i ? 1 - F0.p : 0)) * (e.pull ?? 26), m = ((a0 + a1) / 2) * (Math.PI / 180);
               const lit = e.hi ? litOf(e.hi, t, i) : 1;
-              return <path key={i} d={arc(cx + ex * Math.cos(m), cy + ex * Math.sin(m), ir, R, a0, a0 + Math.min(359.9, (a1 - a0) * q))} fill={s.c ?? seq(i)} opacity={0.35 + 0.65 * lit}
+              const d_ = arc(cx + ex * Math.cos(m), cy + ex * Math.sin(m), ir, R, a0, a0 + Math.min(359.9, (a1 - a0) * q));
+              if (e.img) {
+                const cid = `pie${Math.round(e.t * 1000)}_${i}`, ox = ex * Math.cos(m), oy = ex * Math.sin(m), z = e.iz ?? 1.04;
+                return (
+                  <g key={i} opacity={0.42 + 0.58 * lit} style={{filter: lit < 0.99 ? `saturate(${(0.3 + 0.7 * lit).toFixed(2)})` : undefined}}>
+                    <clipPath id={cid}><path d={d_} /></clipPath>
+                    <image href={img(e.img)} x={cx + ox - R * z} y={cy + oy - R * z} width={2 * R * z} height={2 * R * z} clipPath={`url(#${cid})`} preserveAspectRatio="xMidYMid slice" />
+                    <path d={d_} fill={s.c ?? seq(i)} opacity={e.tint ?? 0.2} style={{mixBlendMode: 'multiply'}} />
+                    <path d={d_} fill="none" stroke={paperBase()} strokeWidth={7} />
+                  </g>
+                );
+              }
+              return <path key={i} d={d_} fill={s.c ?? seq(i)} opacity={0.35 + 0.65 * lit}
                 stroke={paperBase()} strokeWidth={P.flat || TERM ? 3 : 5} style={{filter: TERM ? `drop-shadow(0 0 8px ${alpha(s.c ?? seq(i), 0.6)})` : undefined}} />;
             })}
           </svg>
@@ -287,9 +305,9 @@ export const Pie6: React.FC<any> = ({e, t}) => {
             const {a0, a1} = geo[i], frac = s.v / tot, q = eio(prog(t, s.t ?? t0 + i * sd, sd * 1.5)), m = ((a0 + a1) / 2) * (Math.PI / 180), rr = ir > 0 ? (ir + R) / 2 : R * 0.62;
             const ex = ((F0.cur === i ? F0.p : 0) + (F0.prev === i ? 1 - F0.p : 0)) * (e.pull ?? 26);
             if (frac < (e.minIn ?? 0.07) || q < 0.95) return null;
-            const lit = e.hi ? litOf(e.hi, t, i) : 1, c = s.c ?? seq(i), light = ['#d8c88e', '#9db7d8', '#f2b27a', '#f0c24b', '#c9a27a', '#c8cbe0', '#d6d6d0', '#7dffb5', '#e0a090', '#b89a6a'].includes(c);
+            const lit = e.hi ? litOf(e.hi, t, i) : 1, c = s.c ?? seq(i), light = !e.img && ['#d8c88e', '#9db7d8', '#f2b27a', '#f0c24b', '#c9a27a', '#c8cbe0', '#d6d6d0', '#7dffb5', '#e0a090', '#b89a6a'].includes(c);
             return <div key={i} style={{position: 'absolute', left: cx + (rr + ex) * Math.cos(m) - 90, top: cy + (rr + ex) * Math.sin(m) - 26, width: 180, textAlign: 'center', fontFamily: TH.f.num, fontWeight: W900(TH.f.num), fontSize: e.ps ?? Math.max(30, R * 0.12), lineHeight: 1.2,
-              color: TERM ? (lit > 0.5 ? '#0a1408' : P.lab) : light ? '#141414' : '#ffffff', opacity: clamp((q - 0.95) * 20) * (0.45 + 0.55 * lit)}}>{s.p ?? `${fmt(frac * 100, e.dec ?? 0)}%`}</div>;
+              color: TERM ? (lit > 0.5 ? '#0a1408' : P.lab) : light ? '#141414' : '#ffffff', textShadow: e.img ? '0 2px 10px rgba(0,0,0,.85), 0 0 3px rgba(0,0,0,.9)' : undefined, opacity: clamp((q - 0.95) * 20) * (0.45 + 0.55 * lit)}}>{s.p ?? `${fmt(frac * 100, e.dec ?? 0)}%`}</div>;
           })}
           {e.center && ir > 0 && (
             <div style={{position: 'absolute', left: cx - ir, width: ir * 2, top: cy - ir * 0.42, textAlign: 'center', opacity: eout(prog(t, t0 + sl.length * sd * 0.6, 0.5))}}>
@@ -320,11 +338,11 @@ export const Pie6: React.FC<any> = ({e, t}) => {
 export const Flow6: React.FC<any> = ({e, t}) => {
   const steps = e.steps as any[], n = steps.length;
   const bw = e.bw ?? 360, bh = e.bh ?? 230, gap = e.gap ?? 150, loopH = e.loop ? (e.loopH ?? 190) : 0;
-  const W = n * bw + (n - 1) * gap, H = bh + loopH + 30, stag = e.stag ?? 0.45, t0 = e.t + 0.05, ac = e.ac ?? TH.ink2;
+  const lb_ = e.bare ? 120 : 0, W = n * bw + (n - 1) * gap, H = bh + loopH + 30 + lb_, stag = e.stag ?? 0.45, t0 = e.t + 0.05, ac = e.ac ?? TH.ink2;
   const T = (i: number) => steps[i].t ?? t0 + i * stag;
   const lp = e.loop ? eio(prog(t, e.loop.t ?? T(n - 1) + 0.5, e.loop.d ?? 0.8)) : 0;
   const la = e.loop ? e.loop.from ?? n - 1 : 0, lb = e.loop ? e.loop.to ?? 0 : 0;
-  const lx0 = la * (bw + gap) + bw / 2, lx1 = lb * (bw + gap) + bw / 2, ly = bh + 16;
+  const lx0 = la * (bw + gap) + bw / 2, lx1 = lb * (bw + gap) + bw / 2, ly = bh + 16 + lb_;
   return (
     <div style={{position: 'relative', width: W, height: H}}>
       <svg width={W} height={H} style={{position: 'absolute', left: 0, top: 0, overflow: 'visible'}}>
@@ -346,7 +364,7 @@ export const Flow6: React.FC<any> = ({e, t}) => {
           </>
         )}
       </svg>
-      {e.loop?.l && <div style={{position: 'absolute', left: Math.min(lx0, lx1), width: Math.abs(lx1 - lx0), top: bh + loopH * 0.62, textAlign: 'center', opacity: clamp((lp - 0.6) * 3)}}>
+      {e.loop?.l && <div style={{position: 'absolute', left: Math.min(lx0, lx1), width: Math.abs(lx1 - lx0), top: bh + lb_ + loopH * 0.62, textAlign: 'center', opacity: clamp((lp - 0.6) * 3)}}>
         <Pill txt={e.loop.l} bg={TH.acc} ink={TH.accInk} size={34} style={{position: 'relative', display: 'inline-block'}} /></div>}
       {steps.map((s, i) => s.al && (
         <div key={`al${i}`} style={{position: 'absolute', left: i * (bw + gap) - gap - 60, width: gap + 120, top: bh / 2 - 66, textAlign: 'center', fontFamily: TH.f.body, fontWeight: fwOf(TH.f.body), fontSize: 26, color: TH.ink2, opacity: eout(prog(t, T(i) - 0.1, 0.3)), whiteSpace: 'nowrap', textShadow: glowTs(TH.ink2, 0.4)}}>{s.al}</div>
@@ -354,6 +372,13 @@ export const Flow6: React.FC<any> = ({e, t}) => {
       {steps.map((s, i) => {
         const p = eout(prog(t, T(i), 0.45)), lit = litOf(e.focus, t, i), size = s.size ?? e.ls ?? 60;
         if (p <= 0) return null;
+        if (e.bare) return (
+          <div key={i} style={{position: 'absolute', left: i * (bw + gap), top: 0, width: bw, height: bh, opacity: clamp(p * 2) * (0.45 + 0.55 * lit), transform: `translateY(${((1 - p) * 50).toFixed(1)}px) scale(${(lerp(0.85, 1, back(p)) * (1 + 0.06 * lit)).toFixed(4)})`, filter: lit < 0.99 ? `saturate(${(0.4 + 0.6 * lit).toFixed(2)})` : undefined}}>
+            {s.img && <Img src={img(s.img)} style={{position: 'absolute', left: 0, top: 0, width: bw, height: bh, objectFit: 'contain', filter: propShadow(lit * 0.5)}} />}
+            <div style={{position: 'absolute', left: bw / 2, top: bh + 14, transform: 'translateX(-50%)'}}><Pill txt={s.l} bg={(lit > 0.5 ? TH.acc : TH.light ? 'rgba(255,255,255,.88)' : 'rgba(10,10,16,.62)')} ink={(lit > 0.5 ? TH.accInk : TH.ink)} size={s.size ?? e.ls ?? 46} style={{position: 'relative'}} /></div>
+            {s.s && <div style={{position: 'absolute', left: -60, right: -60, top: bh + 14 + (s.size ?? e.ls ?? 46) * 1.6, textAlign: 'center', fontFamily: TH.f.body, fontWeight: fwOf(TH.f.body), fontSize: s.ss ?? 30, color: TH.ink, whiteSpace: 'nowrap', textShadow: TH.light ? undefined : '0 2px 10px rgba(0,0,0,.7)'}}>{s.s}</div>}
+          </div>
+        );
         return (
           <div key={i} style={{position: 'absolute', left: i * (bw + gap), top: 0, opacity: clamp(p * 2), transform: `translateY(${((1 - p) * 50).toFixed(1)}px) scale(${((0.94 + 0.06 * p) * (1 + 0.04 * lit)).toFixed(4)})`}}>
             <CardBox w={bw} h={bh} lit={lit} seed={i * 29 + 5}>
@@ -411,7 +436,8 @@ export const Tree6: React.FC<any> = ({e, t}) => {
         return (
           <div key={i} style={{position: 'absolute', left: f.x - w / 2, top: f.y, opacity: clamp(p * 2), transform: `translateY(${((1 - p) * -30).toFixed(1)}px) scale(${(1 + 0.04 * lit).toFixed(4)})`}}>
             <CardBox w={w} h={h} lit={lit} seed={i * 23 + 11}>
-              <div style={{position: 'absolute', left: 10, right: 10, top: f.n.s ? h * 0.2 : (h - size * 1.1) / 2, textAlign: 'center', fontFamily: TH.f.card, fontWeight: W900(TH.f.card), fontSize: size, lineHeight: 1.1, color: cInk(lit), textShadow: cGlow(lit, size), whiteSpace: 'pre'}}>{f.n.l}</div>
+              {f.n.icon && <CardIcon src={f.n.icon} lit={lit} style={{left: 14, top: h * 0.12, height: h * 0.76, width: h * 0.76}} />}
+              <div style={{position: 'absolute', left: f.n.icon ? h * 0.82 : 10, right: 10, top: f.n.s ? h * 0.2 : (h - size * 1.1) / 2, textAlign: 'center', fontFamily: TH.f.card, fontWeight: W900(TH.f.card), fontSize: size, lineHeight: 1.1, color: cInk(lit), textShadow: cGlow(lit, size), whiteSpace: 'pre'}}>{f.n.l}</div>
               {f.n.s && <div style={{position: 'absolute', left: 10, right: 10, bottom: h * 0.14, textAlign: 'center', fontFamily: TH.f.body, fontWeight: fwOf(TH.f.body), fontSize: f.n.ss ?? 26, color: cSub(lit), whiteSpace: 'nowrap'}}>{f.n.s}</div>}
             </CardBox>
           </div>
@@ -431,6 +457,7 @@ const MAPC0: any = {
   desk: ['#dedad2', '#fbfaf6', '#e2543f', '#2f5d8a'], editorial: ['#e4e3de', '#fbfaf7', '#1f3fd1', '#111114'],
 };
 const Wd: any = WORLD;
+const RD = (r: any) => r.d ?? (r.vehicle ? 2.4 : 0.9);
 const ne1 = (lon: number, lat: number) => {
   const l = (lon * Math.PI) / 180, p = (lat * Math.PI) / 180, p2 = p * p, p4 = p2 * p2;
   const x = l * (0.8707 - 0.131979 * p2 + p4 * (-0.013791 + p4 * (0.003971 * p2 - 0.001529 * p4)));
@@ -456,6 +483,15 @@ export const Map6: React.FC<any> = ({e, t}) => {
       const [x, y] = P(p.lon, p.lat), q = prog(t, p.t ?? t0 + 0.6 + i * 0.25, 0.4), side = p.side ?? 'r';
       if (q <= 0) return null;
       const c = p.c ?? hot(), ring = 1 + ((t - (p.t ?? t0)) % 1.6) / 1.6;
+      if (p.img) {
+        const iw = p.iw ?? 130, trI = side === 'r' ? `translate(${iw * 0.45}px,-50%)` : side === 'l' ? `translate(calc(-100% - ${iw * 0.45}px),-50%)` : side === 't' ? `translate(-50%,calc(-100% - ${iw * 0.95}px))` : 'translate(-50%,22px)';
+        return (
+          <React.Fragment key={`p${i}`}>
+            <div style={{position: 'absolute', left: x - iw / 2, top: y - iw * 0.9, width: iw, height: iw, transform: `scale(${back(q).toFixed(3)})`, transformOrigin: '50% 90%', zIndex: 2}}><Img src={img(p.img)} style={{width: iw, height: iw, objectFit: 'contain', filter: propShadow(0)}} /></div>
+            {p.l && <div style={{position: 'absolute', left: x, top: y, transform: trI, opacity: clamp(q * 2), zIndex: 3}}><Pill txt={p.l} bg={c} ink={onHot()} size={p.size ?? 34} style={{position: 'relative'}} /></div>}
+          </React.Fragment>
+        );
+      }
       const tr = side === 'r' ? 'translate(28px,-50%)' : side === 'l' ? 'translate(calc(-100% - 28px),-50%)' : side === 't' ? 'translate(-50%,calc(-100% - 26px))' : 'translate(-50%,26px)';
       return (
         <React.Fragment key={`p${i}`}>
@@ -477,21 +513,35 @@ export const Map6: React.FC<any> = ({e, t}) => {
         <svg width={W} height={Hh} style={{position: 'absolute', left: 0, top: 0, overflow: 'visible'}}>
           {(e.routes ?? []).map((r: any, i: number) => {
             const [ax, ay] = P(r.a[0], r.a[1]), [bx, by] = P(r.b[0], r.b[1]), Q = quad(ax, ay, bx, by, r.bend ?? -0.22);
-            const tr = r.t ?? t0 + 0.8 + i * 0.35, q = eio(prog(t, tr, r.d ?? 0.9)), c = r.c ?? route;
+            const tr = r.t ?? t0 + 0.8 + i * 0.35, q = eio(prog(t, tr, RD(r))), c = r.c ?? route;
             if (q <= 0) return null;
-            const flow = r.flow && q >= 1 ? [0, 1, 2].map((j) => Q.at(((t - tr - (r.d ?? 0.9)) * 0.45 + j / 3) % 1)) : [];
+            const flow = r.flow && q >= 1 ? [0, 1, 2].map((j) => Q.at(((t - tr - (RD(r))) * 0.45 + j / 3) % 1)) : [];
             return (
               <g key={i}>
                 <path d={Q.d} fill="none" stroke={c} strokeWidth={r.w ?? 6} strokeLinecap="round" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - q} style={{filter: TERM ? `drop-shadow(0 0 6px ${alpha(c, 0.8)})` : undefined}} />
-                {q > 0.97 && <polygon points={head(bx, by, Q.ang(1), 30)} fill={c} />}
+                {q > 0.97 && (!r.vehicle || r.vehicle.stay || t > tr + RD(r) + 0.3) && <polygon points={head(bx, by, Q.ang(1), 30)} fill={c} />}
                 {flow.map(([x, y], j) => <circle key={j} cx={x} cy={y} r={9} fill={hot()} stroke={surf ? paperBase() : '#fff'} strokeWidth={3} />)}
               </g>
             );
           })}
         </svg>
         {(e.routes ?? []).map((r: any, i: number) => {
+          if (!r.vehicle) return null;
+          const V = typeof r.vehicle === 'string' ? {src: r.vehicle} : r.vehicle, [ax, ay] = P(r.a[0], r.a[1]), [bx, by] = P(r.b[0], r.b[1]), Q = quad(ax, ay, bx, by, r.bend ?? -0.22);
+          const tr = r.t ?? t0 + 0.8 + i * 0.35, d = RD(r);
+          if (t < tr) return null;
+          let u = eio(prog(t, tr, d));
+          if (V.loop && t > tr + d) u = ((t - tr - d) * (V.sp ?? 0.22)) % 1;
+          const [x, y] = Q.at(u), vw = V.w ?? 150;
+          let a = Q.ang(u); const fl = Math.cos(a) < 0; if (fl) a -= Math.PI;
+          while (a < -Math.PI) a += 2 * Math.PI; while (a > Math.PI) a -= 2 * Math.PI;
+          const rot = (a * 180 / Math.PI) * (V.orient ?? 0.5) + Math.sin(t * 2.4 + i) * 2.5;
+          return <div key={`v${i}`} style={{position: 'absolute', left: x - vw / 2, top: y - vw * (V.ay ?? 0.6), width: vw, height: vw, opacity: clamp((t - tr) / 0.3) * (V.stay ? 1 : 1 - prog(t, tr + d, 0.5)), transform: `rotate(${rot.toFixed(2)}deg) scaleX(${fl ? -1 : 1})`, transformOrigin: '50% 60%', zIndex: 3}}>
+            <Img src={img(V.src)} style={{width: vw, height: vw, objectFit: 'contain', filter: propShadow(0)}} /></div>;
+        })}
+        {(e.routes ?? []).map((r: any, i: number) => {
           if (!r.l) return null;
-          const [ax, ay] = P(r.a[0], r.a[1]), [bx, by] = P(r.b[0], r.b[1]), [mx, my] = quad(ax, ay, bx, by, r.bend ?? -0.22).at(0.5), q = prog(t, (r.t ?? t0 + 0.8 + i * 0.35) + (r.d ?? 0.9) * 0.6, 0.4);
+          const [ax, ay] = P(r.a[0], r.a[1]), [bx, by] = P(r.b[0], r.b[1]), [mx, my] = quad(ax, ay, bx, by, r.bend ?? -0.22).at(0.5), q = prog(t, (r.t ?? t0 + 0.8 + i * 0.35) + (RD(r)) * 0.6, 0.4);
           return q > 0 && <div key={`rl${i}`} style={{position: 'absolute', left: mx, top: my, transform: `translate(-50%,-50%) scale(${back(q).toFixed(3)})`}}><Pill txt={r.l} bg={TH.acc} ink={TH.accInk} size={30} style={{position: 'relative'}} /></div>;
         })}
         {(e.hi ?? []).map((hh: any, i: number) => {
@@ -528,6 +578,11 @@ export const Vs6: React.FC<any> = ({e, t}) => {
                 {S.icon && <Img src={img(S.icon)} style={{height: ls * 1.3, objectFit: 'contain'}} />}
                 <div style={{fontFamily: TH.f.card, fontWeight: W900(TH.f.card), fontSize: ls, lineHeight: 1.1, color: cInk(lit), textShadow: cGlow(lit, ls), whiteSpace: 'nowrap'}}>{S.l}</div>
               </div>
+              {S.pic && <Img src={img(S.pic)} style={{position: 'absolute', right: 30, top: 34, width: cw * 0.44, height: h * 0.5, objectFit: 'contain', filter: propShadow(lit * 0.5)}} />}
+              {S.row && Array.from({length: S.row.n}, (_, j) => {
+                const R_ = S.row, iw = R_.iw ?? 84, stepx = Math.min(iw * 0.9, (cw - 128 - iw) / Math.max(1, R_.n - 1)), q = prog(t, (R_.t ?? ts + 0.6) + j * (R_.dt ?? 0.07), 0.3);
+                return q > 0 && <Img key={`r${j}`} src={img(R_.src)} style={{position: 'absolute', left: 64 + j * stepx, top: h - iw - 44, width: iw, height: iw, objectFit: 'contain', opacity: clamp(q * 3), transform: `translateY(${((1 - eout(q)) * -60).toFixed(1)}px) scale(${lerp(0.6, 1, back(q)).toFixed(3)})`, filter: propShadow(0)}} />;
+              })}
               {S.v != null && (
                 <div style={{position: 'absolute', left: 60, right: 40, top: 60 + ls * 1.5, whiteSpace: 'nowrap', color: cInk(lit), textShadow: cGlow(lit, vs * 0.6)}}>
                   <span style={{fontFamily: TH.f.num, fontWeight: W900(TH.f.num), fontSize: vs, lineHeight: 1.05, letterSpacing: TH.num?.ls ? TH.num.ls / 3 : 0}}>{S.v}</span>
@@ -558,7 +613,9 @@ export const Graph6: React.FC<any> = ({e, t}) => {
   const nodes = e.nodes as any[], w = e.w ?? 1800, h = e.h ?? 900, ac = e.ac ?? TH.ink2;
   const ids: Record<string, number> = {}; nodes.forEach((n, i) => {ids[n.id ?? String(i)] = i;});
   const fs = fsIdx(e.focus, ids);
-  const geo = nodes.map((n) => {const round = !!n.round, d = n.d ?? 220; return {round, w: round ? d : n.w ?? 320, h: round ? d : n.h ?? 150};});
+  const geo = nodes.map((n) => {if (n.img) {const d = n.iw ?? 240; return {round: true, w: d, h: d, bare: true};} const round = !!n.round, d = n.d ?? 220; return {round, w: round ? d : n.w ?? 320, h: round ? d : n.h ?? 150};});
+  // mv: [[t, x, y, d?], ...] moves a node; edges follow
+  const pos = (i: number) => {const n = nodes[i]; let x = n.x, y = n.y; for (const [mt, mx, my, md] of n.mv ?? []) {const q = eio(prog(t, mt, md ?? 0.8)); x = lerp(x, mx, q); y = lerp(y, my, q);} return [x, y];};
   const T = (i: number) => nodes[i].t ?? e.t + i * 0.3;
   const exitOf = (i: number, dx: number, dy: number) => {
     const g = geo[i], L = Math.hypot(dx, dy) || 1;
@@ -566,9 +623,9 @@ export const Graph6: React.FC<any> = ({e, t}) => {
     return Math.min((g.w / 2 + 12) / Math.max(1e-6, Math.abs(dx)), (g.h / 2 + 12) / Math.max(1e-6, Math.abs(dy)));
   };
   const edges = (e.edges ?? []).map((ed: any, k: number) => {
-    const A = nodes[ids[ed.a]], B = nodes[ids[ed.b]], dx = B.x - A.x, dy = B.y - A.y;
+    const [Ax, Ay] = pos(ids[ed.a]), [Bx, By] = pos(ids[ed.b]), dx = Bx - Ax, dy = By - Ay;
     const sa = exitOf(ids[ed.a], dx, dy), sb = exitOf(ids[ed.b], dx, dy);
-    const Q = quad(A.x + dx * sa, A.y + dy * sa, B.x - dx * sb, B.y - dy * sb, ed.bend ?? 0);
+    const Q = quad(Ax + dx * sa, Ay + dy * sa, Bx - dx * sb, By - dy * sb, ed.bend ?? 0);
     const te = ed.t ?? Math.max(T(ids[ed.a]), T(ids[ed.b])) + 0.3 + k * 0.1;
     return {ed, Q, te, q: eio(prog(t, te, ed.d ?? 0.6)), c: ed.c ?? ac};
   });
@@ -583,7 +640,8 @@ export const Graph6: React.FC<any> = ({e, t}) => {
               <path d={Q.d} fill="none" stroke={c} strokeWidth={ed.w ?? 6} strokeDasharray={ed.dash ? '14 12' : '1 1'} pathLength={ed.dash ? undefined : 1} strokeDashoffset={ed.dash ? 0 : 1 - q} opacity={ed.dash ? q : 1} strokeLinecap="round" />
               {q > 0.95 && <polygon points={head(...(Q.at(1) as [number, number]), Q.ang(1), 30)} fill={c} />}
               {q > 0.95 && ed.two && <polygon points={head(...(Q.at(0) as [number, number]), Q.ang(0) + Math.PI, 30)} fill={c} />}
-              {flow.map(([x, y], j) => <circle key={j} cx={x} cy={y} r={10} fill={TH.acc} stroke={TH.light ? '#ffffff' : 'rgba(0,0,0,.5)'} strokeWidth={3} />)}
+              {flow.map(([x, y], j) => ed.dot ? <image key={j} href={img(ed.dot)} x={x - (ed.dw ?? 64) / 2} y={y - (ed.dw ?? 64) / 2} width={ed.dw ?? 64} height={ed.dw ?? 64} style={{filter: propShadow(0)}} />
+                : <circle key={j} cx={x} cy={y} r={10} fill={TH.acc} stroke={TH.light ? '#ffffff' : 'rgba(0,0,0,.5)'} strokeWidth={3} />)}
             </g>
           );
         })}
@@ -596,9 +654,15 @@ export const Graph6: React.FC<any> = ({e, t}) => {
       {nodes.map((n, i) => {
         const g = geo[i], p = eout(prog(t, T(i), 0.45)), lit = litOf(fs, t, i), size = n.size ?? (g.round ? g.w * 0.2 : 50);
         if (p <= 0) return null;
-        const media = n.logo || n.icon || n.flag, mh = g.h * (g.round ? 0.34 : 0.4);
+        const media = n.logo || n.icon || n.flag, mh = g.h * (g.round ? 0.34 : 0.4), [nx, ny] = pos(i);
+        if (g.bare) return (
+          <div key={i} style={{position: 'absolute', left: nx - g.w / 2, top: ny - g.h / 2, width: g.w, height: g.h, opacity: clamp(p * 2) * (0.45 + 0.55 * lit), transform: `scale(${((0.8 + 0.2 * back(p)) * (1 + 0.06 * lit)).toFixed(4)})`, zIndex: 2, filter: lit < 0.99 ? `saturate(${(0.4 + 0.6 * lit).toFixed(2)})` : undefined}}>
+            <Img src={img(n.img)} style={{width: g.w, height: g.h, objectFit: 'contain', filter: propShadow(lit * 0.5)}} />
+            {n.l && <div style={{position: 'absolute', left: g.w / 2, top: g.h - 4, transform: 'translateX(-50%)'}}><Pill txt={n.l} bg={(lit > 0.5 ? TH.acc : TH.light ? 'rgba(255,255,255,.88)' : 'rgba(10,10,16,.62)')} ink={(lit > 0.5 ? TH.accInk : TH.ink)} size={n.size ?? 36} style={{position: 'relative'}} /></div>}
+          </div>
+        );
         return (
-          <div key={i} style={{position: 'absolute', left: n.x - g.w / 2, top: n.y - g.h / 2, opacity: clamp(p * 2), transform: `scale(${((0.85 + 0.15 * back(p)) * (1 + 0.05 * lit)).toFixed(4)})`, zIndex: 2}}>
+          <div key={i} style={{position: 'absolute', left: nx - g.w / 2, top: ny - g.h / 2, opacity: clamp(p * 2), transform: `scale(${((0.85 + 0.15 * back(p)) * (1 + 0.05 * lit)).toFixed(4)})`, zIndex: 2}}>
             <CardBox w={g.w} h={g.h} lit={lit} seed={i * 19 + 7} round={g.round}>
               {(n.logo || n.icon) && <Img src={img(n.logo ?? n.icon)} style={{position: 'absolute', left: g.w / 2 - mh, width: mh * 2, top: g.h * (g.round ? 0.16 : 0.1), height: mh, objectFit: 'contain', filter: n.icon ? iconFx(TH.card.icon, lit)?.filter : undefined}} />}
               {n.flag && <div style={{position: 'absolute', left: g.w / 2 - mh * 0.75, top: g.h * (g.round ? 0.18 : 0.12)}}><FlagSvg c={n.flag} w={mh * 1.5} /></div>}
