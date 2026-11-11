@@ -20,6 +20,14 @@ An agent skill with a Remotion engine. It turns talking-head clips into explaine
 
 上面的画面都来自 `--demo` 演示工程。数据是演示数据。
 
+### 8 种扩展版式（v1.3）
+
+![8 种扩展版式（财经·剪纸印刷主题）：折线图、时间轴、饼图和环形图、流程图、树状拆解、世界地图、左右对比、关系图](docs/layouts7.jpg)
+
+![世界地图：国家上色，航线弧线画出后有圆点沿线流动，节点脉冲](docs/demo_map.gif)
+
+每个版式都读主题，6 套主题下都能直接用。讲到哪一项，哪一项就亮起，其余压暗。折线图可以跟着台词分段画（`reveal`），讲到哪一年就画到哪一年。示例在 `templates/scenes_gallery.py`。
+
 ### 6 套主题（v1.2）
 
 ![同一份演示分镜在 6 套主题下的样子：片名、巨型数字、章节、卡片墙、文档页、公式条、计算器](docs/themes.jpg)
@@ -50,6 +58,7 @@ An agent skill with a Remotion engine. It turns talking-head clips into explaine
 | 部分 | 内容 |
 |---|---|
 | 主版式 | 巨型数字 `bignum`、卡片墙 `wall`、白卡图表 `paper`、整页文档加荧光笔 `docpage`、真实网页截图 `webshot`（浏览器外框，荧光笔、下划线、红框、聚光，跟着台词滚动）、实体卡 `ent6`、大公式条 `formula6`、白底计算器 `ui` |
+| 扩展版式 | 折线图 `line6`、时间轴 `timeline6`、饼图和环形图 `pie6`、流程图 `flow6`、树状拆解 `tree6`、世界地图 `map6`（国家上色、航线、脉冲点）、左右对比 `vs6`、关系图 `graph6`（持股、资金流） |
 | 主题 | 6 套：`finance`（默认）、`press`、`blueprint`、`terminal`、`desk`、`editorial`。每套有自己的底图、纸张或屏幕纹理、字体、卡片材质、片名卡和片尾卡。在 `project.json` 里切换，单个场景可以换底图 |
 | 其他元素 | 片名卡、章节卡、片尾卡、照片卡、真实 Logo 片 `logo`、图标砖墙 `tiles`、标签、小人、金币流、印章、弹幕、对话气泡、手绘圈等约 25 种；25 个 2.5D 图标和 12 个图标方块 |
 | 计时 | 元素入场对齐台词关键词：`S.k('关键词', -0.15)` |
@@ -70,6 +79,7 @@ An agent skill with a Remotion engine. It turns talking-head clips into explaine
 - 不录屏，也不下载平台上的视频。网页截图是静态长图，靠滚动和镜头运动做出动感。
 - 只支持 1920×1080、24 帧。
 - 国旗只有 6 个：智利、中国、德国、法国、日本、美国。
+- 世界地图是 Natural Earth 1:1.1 亿的低精度示意图，不符合中国大陆公开出版地图的审核要求。涉及中国疆域时，请改用自然资源部标准地图服务系统的图片，并标注审图号。
 
 ## 安装
 
@@ -105,9 +115,10 @@ bash $S/scripts/render_chunks.sh video.mp4        # 整片
 python3 $S/scripts/mix_audio.py timeline.json mix_raw.wav
 bash $S/scripts/finalize.sh video.mp4 mix_raw.wav final.mp4
 python3 $S/scripts/audit.py video.mp4 72          # 逐帧质检，flagged 应为 0
+python3 story_core.py timeline_gallery.json scenes_gallery.py   # 换成 8 种扩展版式的图鉴
 ```
 
-做自己的视频时，按 `SKILL.md` 的步骤走：开工确认（底图、台标、真实素材）、准备输入、建工程、规划场景、查资料、写分镜、关键帧审片、整片质检。分镜写法从 `templates/scenes_example.py` 复制。参数见 `references/layouts.md` 和 `references/storyboard-api.md`。
+做自己的视频时，按 `SKILL.md` 的步骤走：开工确认（底图、台标、真实素材）、准备输入、建工程、规划场景、查资料、写分镜、关键帧审片、整片质检。分镜写法从 `templates/scenes_example.py` 和 `templates/scenes_gallery.py` 复制。参数见 `references/layouts.md` 和 `references/storyboard-api.md`。
 
 ### 字体：优设标题黑
 
@@ -125,10 +136,11 @@ xiaolin-explainer-packaging/
 │   ├── layouts.md              每个版式的参数和示例
 │   ├── storyboard-api.md       timeline.json 格式、分镜 API、渲染命令
 │   └── research.md             资料检索规范、网页截图和 Logo、图片和商标权利
-├── scripts/                    new_project、render_chunks、mix_audio、finalize、sheet、audit、commons_photo、commons_logo、web_shot
+├── scripts/                    new_project、render_chunks、mix_audio、finalize、sheet、audit、commons_photo、commons_logo、web_shot、build_world
 └── templates/
-    ├── engine/                 Remotion 工程（src/、public/fonts、public/icons、public/plates 底图、public/tex 纹理）
+    ├── engine/                 Remotion 工程（src/、src/geo 地图数据、public/fonts、public/icons、public/plates 底图、public/tex 纹理）
     ├── scenes_example.py       覆盖 7 种主版式的示例分镜
+    ├── scenes_gallery.py       8 种扩展版式的示例分镜（配 timeline_gallery.json）
     ├── facts_template.md       事实文件模板
     └── *.example.json          时间线和工程配置示例
 ```
@@ -139,6 +151,7 @@ xiaolin-explainer-packaging/
 |---|---|
 | 代码、文档、图标、底图、纹理 | MIT，见 [LICENSE](LICENSE)。图标、`public/plates/` 的底图和 `public/tex/` 的纹理由 AI 图像工具生成 |
 | 字体（D-DIN Condensed、Bebas Neue、Oswald、Quicksand、Noto Sans SC、Noto Serif SC、Ma Shan Zheng、Fusion Pixel） | SIL Open Font License 1.1，见 `templates/engine/public/fonts/LICENSES.txt` |
+| 地图数据 `src/geo/world110.json` | 由 Natural Earth 1:1.1 亿国界数据（公有领域）投影生成 |
 | Remotion | 不在本仓库内，`npm install` 时下载。个人、3 人以内的公司和非营利组织可以免费使用。4 人以上的公司要购买公司授权：https://www.remotion.pro/license |
 | 优设标题黑 | 不在本仓库内，见上文 |
 | Logo、网页截图 | 不在本仓库内，由使用者抓取。Logo 是各公司的商标，Wikimedia Commons 上标为公有领域的文件也一样 |
@@ -150,3 +163,5 @@ xiaolin-explainer-packaging/
 v1.1 用一支 CC BY 4.0 的 OpenClaw 讲解视频做了第二次测试，从剪辑到成片走完全程。根据那次的反馈，加入了 tech 主题、3D 渲染底图、真实网页截图和 Logo，并把"开工前先问底图和素材"写进了工作流。
 
 v1.2 根据测试片的反馈重做了全部背景：底图换成有实物质感的纸张、木头、屏幕和图纸，主题从 3 套扩到 6 套，每套有自己的字体、卡片材质、片名卡和片尾卡。OpenClaw 测试片用 `blueprint` 主题重新渲染了一遍。
+
+v1.3 新增 8 种扩展版式（折线图、时间轴、饼图、流程图、树状拆解、世界地图、左右对比、关系图）。演示分镜默认不放画中画，公式条和计算器居中。

@@ -4,11 +4,12 @@ import {back, clamp, eio, eout, F, FPS, GText, img, lerp, loadFonts, prog} from 
 import {BG, FgBokeh, Sparkle} from './bg';
 import {ABS, ELS as ELS5, Place, Ruler} from './els';
 import {ELS6} from './els6';
+import {ELS7} from './els7';
 import {TECH_ELS} from './bg_tech';
 import {REAL_ELS} from './els_real';
 import {TH} from './theme';
 import {CrtFx, ENDS, TITLES} from './skins';
-const ELS: any = {...ELS5, ...ELS6, ...TECH_ELS, ...REAL_ELS};
+const ELS: any = {...ELS5, ...ELS6, ...ELS7, ...TECH_ELS, ...REAL_ELS};
 import D from './data/shots.json';
 
 loadFonts();

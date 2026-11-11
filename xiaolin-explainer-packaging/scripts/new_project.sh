@@ -21,6 +21,8 @@ if [ ! -f "$YS" ]; then
 fi
 if [ "$2" = "--demo" ]; then
   cp "$SKILL/templates/timeline.example.json" "$P/timeline.json"; cp "$SKILL/templates/scenes_example.py" "$P/scenes.py"
+  # layout gallery (v7 layouts): python3 story_core.py timeline_gallery.json scenes_gallery.py
+  cp "$SKILL/templates/timeline_gallery.json" "$SKILL/templates/scenes_gallery.py" "$P/"
   for id in D01 D02 D03 D04; do
     ffmpeg -v error -y -f lavfi -i "color=c=0x5a6b7a:s=1920x1080:r=24:d=14" -f lavfi -i "sine=f=220:d=14" \
       -vf "drawbox=x=760:y=260:w=400:h=560:color=0xd9c4b0:t=fill" -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest "$P/public/clips/$id.mp4"
