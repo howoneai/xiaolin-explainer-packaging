@@ -69,20 +69,53 @@ sc = Scene('g_line', t0, photo_bg('photos/coffee/beans.jpg', dim=0.5, blur=2))
 
 ## 4. 道具：为本期生成
 
-用 `generate_image`（`gpt-image-2.5`，`transparent_background` 非空，输出 `.png`）生成透明 PNG，放进 `public/props/<选题>/`，缩到 800 像素以内。
+用 `generate_image`（`gpt-image-2.5`，`transparent_background` 非空，输出 `.png`）生成透明 PNG，用 `scripts/prop_prep.py` 处理后放进 `public/props/<选题>/`。
 
-**画风由主题决定，画什么由选题决定。** 提示词 = 选题主体描述 + 主题画风后缀。
+**画什么由选题决定，画风每期从 20 种里挑一种。** 提示词 = 选题主体描述 + 画风后缀 + 公共结尾。后缀、公共结尾和注意事项都在 `templates/prop_styles.json`，每种画风的小样在 `templates/prop_styles/<id>.png`。20 种画风在 6 套主题里的实际效果见 README 的画风总览图。
 
-| 主题 | 画风后缀（英文提示词，接在主体描述后面） |
-|---|---|
-| `finance` | Cute 2.5D cartoon sticker illustration: soft gradient shading, gentle highlights, thin dark-brown outlines, rounded chunky shapes, warm saturated colors. Single isolated subject, centered, no text, no letters, no background, no ground shadow. |
-| `press` | Vintage newspaper engraving illustration, black ink cross-hatching on transparent background, slight halftone dots, single isolated subject, no text, no background. |
-| `blueprint` | Technical line drawing in thin white strokes like an engineering blueprint sketch, isometric, no fill, single isolated subject, no text, no background. |
-| `terminal` | Chunky 16-bit pixel art sprite, limited palette of phosphor greens, crisp pixels, single isolated subject, no text, no background. |
-| `desk` | Studio product photo of a real physical object, soft top light, cut out on transparent background, no shadow, no text. |
-| `editorial` | Flat editorial illustration with bold black outlines and 2–3 flat spot colors, single isolated subject, no text, no background. |
+挑画风的顺序：先看主题（下表"适合主题"，第一个是验证过的主主题），再看选题（"适合选题"），最后看本期页面是深底还是白纸。选定后写进 `project.json`：
 
-- 一致性：同一期的道具用同一个画风后缀。需要同一角色的另一个姿势时，把原图作为参考图传给 `generate_image`，提示词写"same character, same style, now ……"。演示里发疯龙虾和带毒的包就是这样从原图改出来的。
+```json
+{"theme": "press", "prop_look": "ink_wash"}
+```
+
+`prop_look` 决定道具怎么落在页面上（阴影方式见下表）。不写时用主题默认：finance `sticker25d`、press `engraving`、blueprint `lineart_white`、terminal `pixel16`、desk `product_photo`、editorial `flat_editorial`。单个道具可以用 `look='...'` 覆盖，但同一期最好只用一种。
+
+| # | id | 画风 | 适合主题 | 页面 | 阴影 | 适合选题 |
+|---|---|---|---|---|---|---|
+| 1 | `sticker25d` | 2.5D 卡通贴纸 | 财经、桌面、杂志 | 深底、浅底 | soft | 商业、消费、财经通用；她原片图标的画法 |
+| 2 | `papercut` | 层叠剪纸 | 财经、桌面、报刊 | 深底、浅底 | paper | 农业、手工业、节日、地方文化 |
+| 3 | `chalk` | 粉笔画 | 财经、蓝图、终端 | 只用深底 | none | 教育、科普、经济学原理、算账 |
+| 4 | `clay` | 黏土定格 | 桌面、财经、杂志 | 深底、浅底 | soft | 生活消费、食品、玩具、儿童 |
+| 5 | `toy3d` | 3D 软胶玩具 | 杂志、财经、桌面 | 深底、浅底 | soft | 互联网产品、App、新消费品牌 |
+| 6 | `vintage_ad` | 50 年代复古广告 | 财经、报刊、杂志 | 深底、浅底 | soft | 品牌史、广告营销、老字号、美国消费史 |
+| 7 | `risograph` | 孔版印刷 | 杂志、报刊、财经 | 深底、浅底 | paper | 文化、独立品牌、潮流、年轻人 |
+| 8 | `flat_editorial` | 扁平杂志插画 | 杂志、财经 | 深底、浅底 | soft | 宏观、政策、社会议题 |
+| 9 | `mono_line` | 单线加色块 | 杂志、桌面、蓝图 | 只用浅底 | none | 设计、观念、心理、极简话题 |
+| 10 | `comic_pop` | 波普漫画 | 杂志、报刊 | 深底、浅底 | paper | 娱乐、争议事件、反转、八卦 |
+| 11 | `product_photo` | 实物棚拍 | 桌面 | 深底、浅底 | soft | 具体商品、价格拆解、开箱、成本 |
+| 12 | `watercolor` | 水彩铅笔 | 桌面、报刊 | 深底、浅底 | paper | 旅行、地理、自然、农产品产地 |
+| 13 | `engraving` | 老报纸版画 | 报刊、杂志 | 深底、浅底 | paper | 历史、金融史、老新闻、人物传记 |
+| 14 | `woodcut` | 木刻版画 | 报刊、杂志 | 深底、浅底 | paper | 劳工、工业史、强烈的社会议题 |
+| 15 | `ink_wash` | 水墨 | 报刊、桌面 | 深底、浅底 | paper | 中国历史、传统文化、茶、酒、瓷器 |
+| 16 | `collage` | 撕纸拼贴 | 报刊、杂志 | 深底、浅底 | paper | 新闻事件、媒体、多方说法、舆论 |
+| 17 | `lineart_white` | 白线稿 | 蓝图、终端 | 只用深底 | glow，`--luma` | 工程、制造、基础设施、芯片 |
+| 18 | `cutaway` | 工程剖视图 | 蓝图、杂志 | 深底、浅底 | soft | 拆解结构、产业链内部、机器原理 |
+| 19 | `neon` | 霓虹灯管 | 终端、蓝图、财经 | 只用深底 | glow，`--luma` | 夜经济、赌场、娱乐业、赛博、加密货币 |
+| 20 | `pixel16` | 16 位像素 | 终端、桌面 | 深底、浅底 | hard | 游戏、互联网早期、程序员、复古科技 |
+
+阴影：`soft` 是悬浮投影，`paper` 是贴在纸面上的薄阴影，`hard` 是像素硬阴影，`glow` 是自身发光，`none` 不加阴影。
+
+生成和处理：
+
+- 每张道具都把本画风的小样 `templates/prop_styles/<id>.png` 作为参考图传给 `generate_image`，提示词开头写 "Match the drawing style of the reference image exactly (only the style, not the subject)."。这样一期十几张道具的画风能保持一致。
+- 生成后运行 `scripts/prop_prep.py 原图... -o public/props/<选题>/`：缩图（默认最长边 800）并裁掉透明边。`lineart_white` 和 `neon` 要加 `--luma`，因为模型会在轮廓里填黑，`--luma` 按 RGB 最大值转透明，只留下线条。脚本会报告不透明像素占比，低于 0.05 说明线条太细，要放大显示或换画风。
+- `tint='#色值'` 把道具整张染成一种颜色。白线稿在终端主题里用 `tint='#33ff88'`，放到白纸页上用 `tint='#1f3f7a'`（蓝墨水）。
+- `product_photo` 的主体要写成实物，例如「a handmade painted wooden figurine of ……」「a detailed scale model of ……」，否则会生成插画。
+- `flat_editorial` 不强制三色时会画成棕色贴纸，和 `sticker25d` 分不开。提示词里要写明哪个部分是钴蓝。
+- 只能用深底的画风（`chalk`、`lineart_white`、`neon`）放在白纸页上看不见；只能用浅底的 `mono_line` 放在深底上看不见。同一期如果既有深底又有白纸页，选两边都能用的画风。
+
+- 一致性：同一期的道具用同一个画风。需要同一角色的另一个姿势时，把原图作为参考图传给 `generate_image`，提示词写"same character, same style, now ……"。演示里发疯龙虾和带毒的包就是这样从原图改出来的。
 - 方向：要沿路径移动的道具（货轮、汽车、飞机）在提示词里写明朝向（"bow pointing right"）。`orient` 和 `autoflip` 会处理转向。
 - 要切开的实物（`pie6 img`）要生成正俯视、圆形、充满画面的图（"perfectly top-down view, circular, filling the frame"）。
 - 限流：一次调用最多 5 张，多批之间不要并发。

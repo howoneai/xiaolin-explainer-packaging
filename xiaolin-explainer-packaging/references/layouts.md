@@ -265,7 +265,8 @@ sc.add('prop', t, x=640, y=650, src='props/openclaw/lobster.png', w=420, idle='s
 sc.add('prop', t2, x=760, y=560, src='props/openclaw/envelope.png', w=110, to=[640, 170], arc=300, pd=0.75, ease='lin',
        spinTo=420, sTo=0.55, fadeEnd=True, copies=6, dt=0.22, loop=True, gap=0.6, anim='none')
 ```
-- 透明 PNG 道具，`w`（和可选的 `h`）是外框，图片等比放进框里。投影按主题自动加，`lift`（0–1）调投影深度，`noShadow=True` 关掉，`flip=True` 水平镜像。
+- 透明 PNG 道具，`w`（和可选的 `h`）是外框，图片等比放进框里。投影按本期画风（`project.json` 的 `prop_look`，见 treatment.md 第 4 节）自动加：贴纸和实物是悬浮投影，纸类画风是贴纸面的薄阴影，像素是硬阴影，白线稿和霓虹是发光。`look='woodcut'` 给单个道具换阴影方式，`lift`（0–1）调投影深度，`noShadow=True` 关掉，`flip=True` 水平镜像。
+- `tint='#33ff88'` 把整张道具染成一种颜色（按图片透明度做遮罩），用于把白线稿染成终端荧光绿或白纸上的蓝墨水。
 - 待机动作 `idle`：`sway`（左右摆）、`breathe`（呼吸缩放）、`shake`（抖）、`wobble`（晃）、`spin`（转），`amp` 是幅度，`sp` 是速度。Place 的 `anim`、`out`、`od`、`float`、`dim`、`lit` 照常可用。
 - 移动（相对 `x`、`y` 的位移）：`path=[[dx, dy], ...]` 折线路径，或 `to=[dx, dy]` 加 `arc`（抛物线高度，像素）。`pt` 是出发时刻（默认 `t`），`pd` 是耗时，`ease` 是 `io`、`out`、`lin`。`orient=True`（或 0–1 的比例）沿路径转向，`autoflip=True` 向左走时自动镜像，`hop` 加 `stride` 是走路的颠簸。`spinTo` 是全程转过的角度，`sTo` 是终点缩放，`fadeEnd=True` 在最后 15% 淡出。
 - `loop=True` 重复整段移动（`gap` 是两次之间的停顿）。`copies=n` 加 `dt` 是同一路径上的 n 个道具，依次出发，适合信封飞进垃圾桶、钞票流走这类场面。

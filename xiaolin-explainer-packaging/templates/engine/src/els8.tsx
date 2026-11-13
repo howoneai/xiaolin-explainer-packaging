@@ -11,12 +11,36 @@ import {phosphorTs} from './skins';
 
 const W900 = (f: string) => (f.includes("'PX'") || f.includes("'MSZ'") || f.includes("'YS'") || f.includes("'BB'") || f.includes("'DIN'") ? 400 : 900);
 
-// contact shadow for a cut-out prop, per theme (terminal props glow instead)
-export const propShadow = (lift = 0): string => {
-  if (TH.name === 'terminal') return `drop-shadow(0 0 ${(8 + 6 * lift).toFixed(0)}px rgba(51,255,136,.38))`;
+// How each prop drawing style sits on the page (references/treatment.md section 4 lists the prompts).
+// sh: 'soft' floating sticker / object shadow, 'paper' thin shadow of paper lying on the page, 'hard' offset pixel shadow,
+//     'glow' light emitted by the drawing (gc = glow colour), 'none'. dark / light: false = do not use on that kind of page.
+export const PROP_LOOKS: Record<string, any> = {
+  sticker25d: {sh: 'soft'}, papercut: {sh: 'paper'}, chalk: {sh: 'none', light: false}, clay: {sh: 'soft'}, toy3d: {sh: 'soft'},
+  vintage_ad: {sh: 'soft'}, risograph: {sh: 'paper'}, flat_editorial: {sh: 'soft'}, mono_line: {sh: 'none', dark: false},
+  comic_pop: {sh: 'paper'}, product_photo: {sh: 'soft'}, watercolor: {sh: 'paper'}, engraving: {sh: 'paper'}, woodcut: {sh: 'paper'},
+  ink_wash: {sh: 'paper'}, collage: {sh: 'paper'}, lineart_white: {sh: 'glow', gc: '255,255,255', light: false}, cutaway: {sh: 'soft'},
+  neon: {sh: 'glow', gc: '255,120,200', light: false}, pixel16: {sh: 'hard'},
+};
+export const lookOf = (id?: string) => PROP_LOOKS[id ?? TH.propLook] ?? PROP_LOOKS.sticker25d;
+// shadow (CSS filter) for a cut-out prop; lift 0..1 = how high it floats; look = a PROP_LOOKS id (default: the episode's)
+export const propShadow = (lift = 0, look?: string): string => {
+  const L = lookOf(look), dark = !TH.light;
+  if (TH.name === 'terminal' && L.sh !== 'hard' && L.sh !== 'glow') return `drop-shadow(0 0 ${(8 + 6 * lift).toFixed(0)}px rgba(51,255,136,.38))`;
+  if (L.sh === 'none') return '';
+  if (L.sh === 'glow') return `drop-shadow(0 0 ${(6 + 4 * lift).toFixed(0)}px rgba(${L.gc},.55)) drop-shadow(0 0 ${(18 + 8 * lift).toFixed(0)}px rgba(${L.gc},.28))`;
+  if (L.sh === 'hard') return `drop-shadow(${(6 + 4 * lift).toFixed(0)}px ${(6 + 4 * lift).toFixed(0)}px 0 rgba(0,0,0,${dark ? 0.55 : 0.28}))`;
+  if (L.sh === 'paper') return dark ? `drop-shadow(0 ${(3 + 6 * lift).toFixed(0)}px ${(4 + 8 * lift).toFixed(0)}px rgba(0,0,0,${(0.55 + 0.1 * lift).toFixed(2)}))`
+    : `drop-shadow(0 ${(2 + 5 * lift).toFixed(0)}px ${(3 + 6 * lift).toFixed(0)}px rgba(40,30,20,${(0.3 + 0.06 * lift).toFixed(2)}))`;
   if (TH.light) return `drop-shadow(0 ${(8 + 10 * lift).toFixed(0)}px ${(10 + 12 * lift).toFixed(0)}px rgba(40,30,20,${(0.26 + 0.06 * lift).toFixed(2)}))`;
   return `drop-shadow(0 ${(12 + 10 * lift).toFixed(0)}px ${(16 + 14 * lift).toFixed(0)}px rgba(0,0,0,${(0.5 + 0.1 * lift).toFixed(2)}))`;
 };
+// a cut-out image, optionally re-coloured: tint paints the drawing's alpha in one colour (white line art -> phosphor green)
+export const PropImg: React.FC<{src: string; w: number; h: number; filter?: string; tint?: string}> = ({src, w, h, filter, tint}) => tint ? (
+  <div style={{width: w, height: h, filter}}>
+    <div style={{width: w, height: h, backgroundColor: tint, WebkitMaskImage: `url(${img(src)})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center',
+      maskImage: `url(${img(src)})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center'} as any} />
+  </div>
+) : <Img src={img(src)} style={{width: w, height: h, objectFit: 'contain', filter}} />;
 
 // point at fraction u of a polyline (by length): [x, y, angle, distance]
 export const polyAt = (pts: number[][], u: number) => {
@@ -32,7 +56,8 @@ export const polyAt = (pts: number[][], u: number) => {
 const arcPts = (to: number[], h: number, n = 28) => Array.from({length: n + 1}, (_, k) => {const u = k / n; return [to[0] * u, to[1] * u - 4 * h * u * (1 - u)];});
 
 // ---------------------------------------------------------------- prop
-// src, w (px), h? (box height, default w; the image is contained), flip, lift (shadow depth 0..1), noShadow
+// src, w (px), h? (box height, default w; the image is contained), flip, lift (shadow depth 0..1), noShadow,
+//   look (PROP_LOOKS id, default the episode's prop_look: sets the shadow), tint (CSS colour: repaint the drawing in one colour)
 // idle: 'sway' | 'breathe' | 'shake' | 'wobble' | 'spin' (+ amp, sp); Place's float / anim / out / dim / lit still apply
 // motion (offsets relative to x, y): path [[dx, dy], ...] or to [dx, dy] + arc (px); pt (start, default e.t), pd (seconds),
 //   ease 'io' | 'out' | 'lin', orient (true or a fraction: rotate along the path), autoflip (mirror when moving left),
@@ -69,7 +94,7 @@ export const Prop: React.FC<any> = ({e, t}) => {
     return (
       <div key={k} style={{position: 'absolute', left: 0, top: 0, width: w, height: h, opacity: op,
         transform: `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) rotate(${rot.toFixed(2)}deg) scale(${(sx * sc).toFixed(4)},${(sc * sy).toFixed(4)})`, transformOrigin: e.origin ?? '50% 70%'}}>
-        <Img src={img(e.src)} style={{width: w, height: h, objectFit: 'contain', filter: e.noShadow ? e.fx : [propShadow(e.lift ?? 0), e.fx].filter(Boolean).join(' ')}} />
+        <PropImg src={e.src} w={w} h={h} tint={e.tint} filter={(e.noShadow ? [e.fx] : [propShadow(e.lift ?? 0, e.look), e.fx]).filter(Boolean).join(' ') || undefined} />
       </div>
     );
   };

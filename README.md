@@ -32,6 +32,14 @@ An agent skill with a Remotion engine. It turns talking-head clips into explaine
 
 换选题时骨架可以一样，画法要重做。OpenClaw 选题里，"36.8% 的 skill 有漏洞"画成 100 个 skill 包里有 37 个变成冒毒液的包；"接进 20 多个聊天软件"画成龙虾管家居中、信封从四周的平台流过来。做法、道具提示词和素材槽写在 `references/treatment.md`，示例在 `templates/scenes_treat.py`。
 
+### 20 种道具画风（v1.5）
+
+![同一个咖啡豆小人和货轮，用 20 种画风生成，放在各自适合的主题里](docs/prop_styles.jpg)
+
+画什么由选题决定，画风每期从 20 种里挑一种：2.5D 贴纸、层叠剪纸、粉笔画、50 年代复古广告、3D 软胶玩具、孔版印刷、扁平杂志插画、单线加色块、波普漫画、黏土定格、实物棚拍、水彩铅笔、老报纸版画、木刻版画、水墨、撕纸拼贴、白线稿、工程剖视图、霓虹灯管、16 位像素。每种画风都有提示词后缀、一张小样、适合的主题和选题，并标明能放在深底还是白纸页上。目录在 `templates/prop_styles.json`，小样在 `templates/prop_styles/`。
+
+在 `project.json` 里写 `"prop_look": "ink_wash"` 选定画风，引擎按画风给道具加阴影：贴纸和实物用悬浮投影，纸类画风用贴着纸面的薄阴影，像素用硬阴影，白线稿和霓虹自身发光。生成新道具时，把小样作为参考图传给图像工具，一期十几张道具能保持同一种画风。`scripts/prop_prep.py` 负责缩图和裁边；白线稿和霓虹会被模型填上黑底，用 `--luma` 去掉。`tint` 可以把白线稿染成终端的荧光绿，或者白纸页上的蓝墨水。
+
 ### 8 种扩展版式（v1.3）
 
 ![8 种扩展版式（财经·剪纸印刷主题）：折线图、时间轴、饼图和环形图、流程图、树状拆解、世界地图、左右对比、关系图](docs/layouts7.jpg)
@@ -71,7 +79,7 @@ An agent skill with a Remotion engine. It turns talking-head clips into explaine
 |---|---|
 | 主版式 | 巨型数字 `bignum`、卡片墙 `wall`、白卡图表 `paper`、整页文档加荧光笔 `docpage`、真实网页截图 `webshot`（浏览器外框，荧光笔、下划线、红框、聚光，跟着台词滚动）、实体卡 `ent6`、大公式条 `formula6`、白底计算器 `ui` |
 | 扩展版式 | 折线图 `line6`、时间轴 `timeline6`、饼图和环形图 `pie6`、流程图 `flow6`、树状拆解 `tree6`、世界地图 `map6`（国家上色、航线、脉冲点）、左右对比 `vs6`、关系图 `graph6`（持股、资金流） |
-| 画法 | 版式当骨架，每期按选题定制：照片背景（压暗、虚化、慢推）、为本期生成的道具（`prop`：待机动作、沿路径移动、成串流动）、象形图 `stack6`（道具堆成柱，或网格里一部分换图），以及每个骨架上的素材槽（骑在线头的道具、切成扇区的实物、沿航线开的载具、角色节点、沿边流动的道具）。道具提示词按主题画风分 6 套 |
+| 画法 | 版式当骨架，每期按选题定制：照片背景（压暗、虚化、慢推）、为本期生成的道具（`prop`：待机动作、沿路径移动、成串流动）、象形图 `stack6`（道具堆成柱，或网格里一部分换图），以及每个骨架上的素材槽（骑在线头的道具、切成扇区的实物、沿航线开的载具、角色节点、沿边流动的道具）。道具画风 20 种（`prop_look`），每种有提示词、小样和阴影方式 |
 | 主题 | 6 套：`finance`（默认）、`press`、`blueprint`、`terminal`、`desk`、`editorial`。每套有自己的底图、纸张或屏幕纹理、字体、卡片材质、片名卡和片尾卡。在 `project.json` 里切换，单个场景可以换底图 |
 | 其他元素 | 片名卡、章节卡、片尾卡、照片卡、真实 Logo 片 `logo`、图标砖墙 `tiles`、标签、小人、金币流、印章、弹幕、对话气泡、手绘圈等约 25 种；25 个 2.5D 图标和 12 个图标方块 |
 | 计时 | 元素入场对齐台词关键词：`S.k('关键词', -0.15)` |
@@ -148,17 +156,19 @@ xiaolin-explainer-packaging/
 ├── SKILL.md                    工作流、审片清单、已知陷阱
 ├── references/
 │   ├── style-bible.md          图形语言、硬规则、色板、字体、转场、声音电平
-│   ├── treatment.md            每期按选题定制画法：设计表、照片背景、道具提示词、素材槽
+│   ├── treatment.md            每期按选题定制画法：设计表、照片背景、20 种道具画风、素材槽
 │   ├── layouts.md              每个版式的参数和示例
 │   ├── storyboard-api.md       timeline.json 格式、分镜 API、渲染命令
 │   └── research.md             资料检索规范、网页截图和 Logo、图片和商标权利
-├── scripts/                    new_project、render_chunks、mix_audio、finalize、sheet、audit、commons_photo、commons_logo、web_shot、build_world
+├── scripts/                    new_project、render_chunks、mix_audio、finalize、sheet、audit、commons_photo、commons_logo、web_shot、build_world、prop_prep
 └── templates/
     ├── engine/                 Remotion 工程（src/、src/geo 地图数据、public/fonts、public/icons、public/plates 底图、public/tex 纹理）
     ├── scenes_example.py       覆盖 7 种主版式的示例分镜
     ├── scenes_gallery.py       8 种扩展版式的示例分镜，只有骨架（配 timeline_gallery.json）
     ├── scenes_treat.py         画法示例：骨架加照片和道具（配 timeline_treat.json）
     ├── demo_assets/            画法示例用的道具和照片（--demo 时拷进工程，来源见 CREDITS.md）
+    ├── prop_styles.json        20 种道具画风：提示词后缀、阴影、深底和白纸页能否使用、适合的主题和选题
+    ├── prop_styles/            每种画风一张小样，生成道具时当参考图
     ├── facts_template.md       事实文件模板
     └── *.example.json          时间线和工程配置示例
 ```
@@ -169,7 +179,7 @@ xiaolin-explainer-packaging/
 |---|---|
 | 代码、文档、图标、底图、纹理 | MIT，见 [LICENSE](LICENSE)。图标、`public/plates/` 的底图和 `public/tex/` 的纹理由 AI 图像工具生成 |
 | 字体（D-DIN Condensed、Bebas Neue、Oswald、Quicksand、Noto Sans SC、Noto Serif SC、Ma Shan Zheng、Fusion Pixel） | SIL Open Font License 1.1，见 `templates/engine/public/fonts/LICENSES.txt` |
-| 演示道具 `templates/demo_assets/props/` | MIT，由 AI 图像工具生成 |
+| 演示道具 `templates/demo_assets/props/`、画风小样 `templates/prop_styles/` | MIT，由 AI 图像工具生成 |
 | 演示照片 `templates/demo_assets/photos/` | 来自 Wikimedia Commons，各自为公有领域、CC BY 2.0、CC BY-SA 2.0 或 CC BY-SA 4.0，作者和原始页面见 `templates/demo_assets/CREDITS.md` |
 | 地图数据 `src/geo/world110.json` | 由 Natural Earth 1:1.1 亿国界数据（公有领域）投影生成 |
 | Remotion | 不在本仓库内，`npm install` 时下载。个人、3 人以内的公司和非营利组织可以免费使用。4 人以上的公司要购买公司授权：https://www.remotion.pro/license |
@@ -185,3 +195,7 @@ v1.1 用一支 CC BY 4.0 的 OpenClaw 讲解视频做了第二次测试，从剪
 v1.2 根据测试片的反馈重做了全部背景：底图换成有实物质感的纸张、木头、屏幕和图纸，主题从 3 套扩到 6 套，每套有自己的字体、卡片材质、片名卡和片尾卡。OpenClaw 测试片用 `blueprint` 主题重新渲染了一遍。
 
 v1.3 新增 8 种扩展版式（折线图、时间轴、饼图、流程图、树状拆解、世界地图、左右对比、关系图）。演示分镜默认不放画中画，公式条和计算器居中。
+
+v1.4 把版式改成骨架：每期按选题定制画法，图形压在选题照片上，放为这一期生成的道具。
+
+v1.5 把道具画风和主题拆开，从 6 种扩到 20 种。每种都用同一组测试主体（咖啡豆小人和货轮）在适合的主题里渲染过，分别检查了深底和白纸页上的效果。

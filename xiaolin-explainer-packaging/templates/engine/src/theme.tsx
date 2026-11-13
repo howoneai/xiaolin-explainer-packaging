@@ -121,4 +121,6 @@ const OPTS: any = typeof RAW === 'string' ? {} : RAW;
 const BASE = PRESETS[NAME];
 // pal: accent colours used by the tech icon tiles (bg_tech.tsx); a theme or project can override single keys
 const PAL = {teal: '#2f7f7a', steel: '#3b5b8c', coral: '#c8574d', lime: '#d9e47e', slate: '#252c3b', cream: '#f2e6b8', gray: '#9aa4b4'};
-export const TH: any = {...BASE, ...OPTS, name: NAME, title: NAME, end: NAME, lux: {...BASE.lux, ...(OPTS.lux ?? {})}, pal: {...PAL, ...(BASE.pal ?? {}), ...(OPTS.pal ?? {})}};
+// prop_look: the drawing style of this episode's props (references/treatment.md section 4); project.json "prop_look" overrides the theme default
+const LOOK0: Record<string, string> = {finance: 'sticker25d', press: 'engraving', blueprint: 'lineart_white', terminal: 'pixel16', desk: 'product_photo', editorial: 'flat_editorial'};
+export const TH: any = {propLook: (D as any).prop_look ?? OPTS.propLook ?? LOOK0[NAME], ...BASE, ...OPTS, name: NAME, title: NAME, end: NAME, lux: {...BASE.lux, ...(OPTS.lux ?? {})}, pal: {...PAL, ...(BASE.pal ?? {}), ...(OPTS.pal ?? {})}};

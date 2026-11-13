@@ -360,7 +360,7 @@ def build():
             if 'from_' in e: e['from'] = e.pop('from_')
             if CFG.get('en_labels', True) is False: _strip_en(e)
     data = dict(total=TOTAL, vsegs=vsegs, subs=subs, blocks=blocks, scenes=SCENES, trans=trans, brand=CFG.get('brand', {}),
-                theme=CFG.get('theme', 'finance'), en_labels=CFG.get('en_labels', True))
+                theme=CFG.get('theme', 'finance'), en_labels=CFG.get('en_labels', True), prop_look=CFG.get('prop_look'))
     os.makedirs(f'{ROOT}/src/data', exist_ok=True)
     json.dump(data, open(f'{ROOT}/src/data/shots.json', 'w'), ensure_ascii=False)
     json.dump(sorted(SFX), open(f'{ROOT}/sfx.json', 'w'))
