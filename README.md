@@ -46,22 +46,25 @@ An agent skill with a Remotion engine. It turns talking-head clips into explaine
 
 ![世界地图：国家上色，航线弧线画出后有圆点沿线流动，节点脉冲](docs/demo_map.gif)
 
-每个版式都读主题，6 套主题下都能直接用。讲到哪一项，哪一项就亮起，其余压暗。折线图可以跟着台词分段画（`reveal`），讲到哪一年就画到哪一年。示例在 `templates/scenes_gallery.py`。这里只有骨架，做片时要按上一节加画法。
+每个版式都读主题，所有画风下都能直接用。讲到哪一项，哪一项就亮起，其余压暗。折线图可以跟着台词分段画（`reveal`），讲到哪一年就画到哪一年。示例在 `templates/scenes_gallery.py`。这里只有骨架，做片时要按上一节加画法。
 
-### 6 套主题（v1.2）
+### 7 套整体画风（v1.6）
 
-![同一份演示分镜在 6 套主题下的样子：片名、巨型数字、章节、卡片墙、文档页、公式条、计算器](docs/themes.jpg)
+![同一份跨题材分镜（AI、城市、医疗）在 7 套画风下的样子：片名、巨型数字、流程卡、对比卡、折线图、计算器、片尾](docs/styles7.jpg)
 
-在 `project.json` 里写 `"theme": "press"` 这样一个词，整片的底图、纸张和屏幕材质、字体、卡片、片名卡和片尾卡一起换，分镜代码不用改。
+主题是整套画风：底图、材质、字体、配色、动效、片名卡和片尾卡一起换。它不绑定选题，上图每一行都用同一份分镜，讲的是 AI、城市通勤和门诊三个不相干的题目。选题相关的东西（照片、道具、图表内容）每期按画法另做。在 `project.json` 里写 `"theme": "chalk"` 这样一个词就能整片换风格，分镜代码不用改。
 
-| 主题 | 适合 | 样子 |
+| 主题 | 画风 | 适合的叙事气质 |
 |---|---|---|
-| `finance`（默认）· 剪纸印刷 | 财经、民生、政策 | 暖灰底、剪纸色块、钞票边框、粉笔涂鸦，优设标题黑 |
-| `press` · 报刊纸本 | 历史、人文、社会、国际 | 旧报纸拼贴、牛皮纸、撕边纸条和胶带，网点印刷的红色数字，宋体 |
-| `blueprint` · 工程蓝图 | AI、软件、互联网、工程 | 蓝晒图纸、白色机械线稿、橙色尺寸线、图钉卡片 |
-| `terminal` · 复古终端 | 网络安全、编程史、游戏 | CRT 显示器外框和扫描线、荧光字、Win95 窗口，像素字体 |
-| `desk` · 桌面实物 | 生活、消费、个人理财、教程 | 胡桃木桌面、索引卡、便签，手写字体 |
-| `editorial` · 现代杂志 | 品牌、商业、通用 | 米白纸面、超大粗黑体、单一品牌蓝 |
+| `finance`（默认）· 剪纸印刷 | 石墨纸上的撕边彩色剪纸，酸黄套印，粗黑体 | 热闹、拆账、讲道理 |
+| `press` · 报刊纸本 | 旧报纸拼贴、牛皮纸、撕口纸条，粗宋体 | 回看历史、人文、社会 |
+| `terminal` · 复古终端 | CRT 外框、磷光字、扫描线，浅色页是针式打印纸，像素字体 | 技术、系统怎么运转 |
+| `banknote` · 纸币雕版 | 钞票安全纸、凹版花边、椭圆框，雕版宋体 | 钱、金融、权威、正式 |
+| `casefile` · 档案证据墙 | 软木板、马尼拉卷宗、图钉、红线、台灯光，红笔批注 | 调查、揭秘、事件复盘 |
+| `chalk` · 黑板粉笔 | 深绿石板、木框、粉笔手写，浅色页是横线练习纸 | 讲原理、算账、教学 |
+| `pixelgame` · 像素关卡 | 8-bit 草地天空关卡、城堡砖墙，逐格跳帧，像素字体 | 游戏、年轻向、闯关式叙事 |
+
+旧主题仍然可用：`blueprint`（工程蓝图）、`desk`（桌面实物）、`editorial`（现代杂志），以及 v1.2 的 `finance_classic`、`press_classic`、`terminal_classic`。
 
 ### 真实素材
 
@@ -80,7 +83,7 @@ An agent skill with a Remotion engine. It turns talking-head clips into explaine
 | 主版式 | 巨型数字 `bignum`、卡片墙 `wall`、白卡图表 `paper`、整页文档加荧光笔 `docpage`、真实网页截图 `webshot`（浏览器外框，荧光笔、下划线、红框、聚光，跟着台词滚动）、实体卡 `ent6`、大公式条 `formula6`、白底计算器 `ui` |
 | 扩展版式 | 折线图 `line6`、时间轴 `timeline6`、饼图和环形图 `pie6`、流程图 `flow6`、树状拆解 `tree6`、世界地图 `map6`（国家上色、航线、脉冲点）、左右对比 `vs6`、关系图 `graph6`（持股、资金流） |
 | 画法 | 版式当骨架，每期按选题定制：照片背景（压暗、虚化、慢推）、为本期生成的道具（`prop`：待机动作、沿路径移动、成串流动）、象形图 `stack6`（道具堆成柱，或网格里一部分换图），以及每个骨架上的素材槽（骑在线头的道具、切成扇区的实物、沿航线开的载具、角色节点、沿边流动的道具）。道具画风 20 种（`prop_look`），每种有提示词、小样和阴影方式 |
-| 主题 | 6 套：`finance`（默认）、`press`、`blueprint`、`terminal`、`desk`、`editorial`。每套有自己的底图、纸张或屏幕纹理、字体、卡片材质、片名卡和片尾卡。在 `project.json` 里切换，单个场景可以换底图 |
+| 主题 | 7 套不绑定选题的整体画风：`finance`（默认）、`press`、`terminal`、`banknote`、`casefile`、`chalk`、`pixelgame`；另有 `blueprint`、`desk`、`editorial` 等旧主题。每套有自己的底图、纹理、字体、配色、动效、卡片材质、片名卡和片尾卡。在 `project.json` 里切换，单个场景可以换底图 |
 | 其他元素 | 片名卡、章节卡、片尾卡、照片卡、真实 Logo 片 `logo`、图标砖墙 `tiles`、标签、小人、金币流、印章、弹幕、对话气泡、手绘圈等约 25 种；25 个 2.5D 图标和 12 个图标方块 |
 | 计时 | 元素入场对齐台词关键词：`S.k('关键词', -0.15)` |
 | 镜头和转场 | 镜头跟随当前项；场景间自动分配推拉、甩镜、推移、闪白、旋转推近 |
@@ -96,7 +99,7 @@ An agent skill with a Remotion engine. It turns talking-head clips into explaine
 
 - 不生成出镜画面。出镜片段要用别的工具生成或自己拍摄。
 - 不写口播稿。
-- 骨架（图形语言）只有这一套。主题换的是材质、底图、字体和片名片尾；骨架本身要改组件代码。
+- 骨架（图形语言）只有这一套。主题换的是材质、底图、字体、动效和片名片尾；骨架本身要改组件代码。
 - 道具不随选题自动生成。在 Manus 里用图像生成工具按 `treatment.md` 的提示词生成；没有图像生成工具时，要自己准备透明 PNG。
 - 不录屏，也不下载平台上的视频。网页截图是静态长图，靠滚动和镜头运动做出动感。
 - 只支持 1920×1080、24 帧。
@@ -162,10 +165,11 @@ xiaolin-explainer-packaging/
 │   └── research.md             资料检索规范、网页截图和 Logo、图片和商标权利
 ├── scripts/                    new_project、render_chunks、mix_audio、finalize、sheet、audit、commons_photo、commons_logo、web_shot、build_world、prop_prep
 └── templates/
-    ├── engine/                 Remotion 工程（src/、src/geo 地图数据、public/fonts、public/icons、public/plates 底图、public/tex 纹理）
+    ├── engine/                 Remotion 工程（src/、src/styles7 七套画风、src/geo 地图数据、public/fonts、public/icons、public/styles7 和 public/plates 底图、public/tex 纹理）
     ├── scenes_example.py       覆盖 7 种主版式的示例分镜
     ├── scenes_gallery.py       8 种扩展版式的示例分镜，只有骨架（配 timeline_gallery.json）
     ├── scenes_treat.py         画法示例：骨架加照片和道具（配 timeline_treat.json）
+    ├── scenes_cross.py         画风对比用的跨题材分镜：AI、城市、医疗 9 个画面（配 timeline_cross.json）
     ├── demo_assets/            画法示例用的道具和照片（--demo 时拷进工程，来源见 CREDITS.md）
     ├── prop_styles.json        20 种道具画风：提示词后缀、阴影、深底和白纸页能否使用、适合的主题和选题
     ├── prop_styles/            每种画风一张小样，生成道具时当参考图
@@ -177,7 +181,7 @@ xiaolin-explainer-packaging/
 
 | 内容 | 许可 |
 |---|---|
-| 代码、文档、图标、底图、纹理 | MIT，见 [LICENSE](LICENSE)。图标、`public/plates/` 的底图和 `public/tex/` 的纹理由 AI 图像工具生成 |
+| 代码、文档、图标、底图、纹理 | MIT，见 [LICENSE](LICENSE)。图标、`public/styles7/` 和 `public/plates/` 的底图、`public/tex/` 的纹理由 AI 图像工具生成 |
 | 字体（D-DIN Condensed、Bebas Neue、Oswald、Quicksand、Noto Sans SC、Noto Serif SC、Ma Shan Zheng、Fusion Pixel） | SIL Open Font License 1.1，见 `templates/engine/public/fonts/LICENSES.txt` |
 | 演示道具 `templates/demo_assets/props/`、画风小样 `templates/prop_styles/` | MIT，由 AI 图像工具生成 |
 | 演示照片 `templates/demo_assets/photos/` | 来自 Wikimedia Commons，各自为公有领域、CC BY 2.0、CC BY-SA 2.0 或 CC BY-SA 4.0，作者和原始页面见 `templates/demo_assets/CREDITS.md` |
@@ -199,3 +203,5 @@ v1.3 新增 8 种扩展版式（折线图、时间轴、饼图、流程图、树
 v1.4 把版式改成骨架：每期按选题定制画法，图形压在选题照片上，放为这一期生成的道具。
 
 v1.5 把道具画风和主题拆开，从 6 种扩到 20 种。每种都用同一组测试主体（咖啡豆小人和货轮）在适合的主题里渲染过，分别检查了深底和白纸页上的效果。
+
+v1.6 重做整体画风。先出了 20 套风格板，保留其中 7 套（剪纸印刷、报刊纸本、复古终端、纸币雕版、档案证据墙、黑板粉笔、像素关卡），每套重写了材质、字体、配色、动效、片名卡和片尾卡，底图全部重新生成，只放材质、不放任何选题物件。每套都用 AI、城市、医疗三个不相干的选题渲染检查过。旧主题保留。

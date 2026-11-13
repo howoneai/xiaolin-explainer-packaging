@@ -1,11 +1,13 @@
 // Visual themes. Select in project.json:
-//   "theme": "finance" | "press" | "blueprint" | "terminal" | "desk" | "editorial"
+//   "theme": "finance" | "press" | "terminal" | "banknote" | "casefile" | "chalk" | "pixelgame"  (styles7/, the active set)
+//   legacy: "blueprint" | "desk" | "editorial" | "finance_classic" | "press_classic" | "terminal_classic"
 //   or  "theme": {"name": "press", "plates": [...], "titlePlate": "plates/x.jpg", ...any token below}
 // Each theme = photographic plates (public/plates) + paper/material textures (public/tex) + tokens that
 // every layout reads (cards, panel, document page, app window, big number, title and end cards).
 // Old names: "tech" -> "blueprint", "plain" -> "editorial".
 import {staticFile} from 'remotion';
 import D from './data/shots.json';
+import {STYLE7, STYLE7_BASE} from './styles7';
 
 // texture-tinted surface: a light paper scan multiplied over a colour = coloured paper with real fibres
 export const tx = (c: string, t = 'tex/fiber.jpg', size = 'cover'): any => ({
@@ -114,13 +116,34 @@ const PRESETS: Record<string, any> = {
   },
 };
 const ALIAS: any = {tech: 'blueprint', 'tech-flat': 'blueprint', plain: 'editorial'};
+// the plate-photo versions of finance / press / terminal from v1.2 stay available as *_classic
+const CLASSIC: any = {finance_classic: 'finance', press_classic: 'press', terminal_classic: 'terminal'};
+// Topic-neutral plates per style: the style's own world (cut-paper layers, newspaper collage, the CRT, security paper,
+// the cork board, the blackboard, the pixel level). No props, symbols or data; episodes add their own on top.
+const S7P = (k: string) => `styles7/${k}.jpg`;
+const PLATES7: any = {
+  finance: {plates: [S7P('fin7_dark_a'), S7P('fin7_dark_b')], titlePlate: S7P('fin7_title'), endPlate: S7P('fin7_title'), paperPlate: 'plates/fin_paper.jpg'},
+  press: {plates: [S7P('press7_dark_a')], titlePlate: S7P('press7_title'), endPlate: S7P('press7_title'), paperPlate: 'plates/press_paper.jpg'},
+  terminal: {plates: ['plates/term_crt.jpg'], titlePlate: 'plates/term_crt.jpg', endPlate: 'plates/term_crt.jpg', paperPlate: S7P('term7_paper'),
+    bezel: {'plates/term_crt.jpg': 'plates/term_crt_bezel.png'}},
+  banknote: {plates: [S7P('bank7_dark_a'), S7P('bank7_dark_b')], titlePlate: S7P('bank7_title'), endPlate: S7P('bank7_title'), paperPlate: S7P('bank7_paper')},
+  casefile: {plates: [S7P('case7_dark_a'), S7P('case7_dark_b')], titlePlate: S7P('case7_title'), endPlate: S7P('case7_title'), paperPlate: S7P('case7_paper')},
+  chalk: {plates: [S7P('chalk7_dark_a'), S7P('chalk7_dark_b')], titlePlate: S7P('chalk7_title'), endPlate: S7P('chalk7_title'), paperPlate: S7P('chalk7_paper')},
+  pixelgame: {plates: [S7P('pix7_dark_a'), S7P('pix7_dark_b')], titlePlate: S7P('pix7_title'), endPlate: S7P('pix7_title'), paperPlate: S7P('pix7_paper')},
+};
 const RAW: any = (D as any).theme ?? 'finance';
 const NAME0: string = typeof RAW === 'string' ? RAW : RAW.name ?? 'finance';
-const NAME = PRESETS[NAME0] ? NAME0 : ALIAS[NAME0] ?? 'finance';
+const NAME = STYLE7[NAME0] || PRESETS[NAME0] || CLASSIC[NAME0] ? NAME0 : ALIAS[NAME0] ?? 'finance';
+const S7 = STYLE7[NAME];
+const KEY = CLASSIC[NAME] ?? NAME;
 const OPTS: any = typeof RAW === 'string' ? {} : RAW;
-const BASE = PRESETS[NAME];
+const BASE = S7 ? S7.preset(PRESETS[STYLE7_BASE[NAME]], tx) : PRESETS[KEY];
 // pal: accent colours used by the tech icon tiles (bg_tech.tsx); a theme or project can override single keys
 const PAL = {teal: '#2f7f7a', steel: '#3b5b8c', coral: '#c8574d', lime: '#d9e47e', slate: '#252c3b', cream: '#f2e6b8', gray: '#9aa4b4'};
 // prop_look: the drawing style of this episode's props (references/treatment.md section 4); project.json "prop_look" overrides the theme default
-const LOOK0: Record<string, string> = {finance: 'sticker25d', press: 'engraving', blueprint: 'lineart_white', terminal: 'pixel16', desk: 'product_photo', editorial: 'flat_editorial'};
-export const TH: any = {propLook: (D as any).prop_look ?? OPTS.propLook ?? LOOK0[NAME], ...BASE, ...OPTS, name: NAME, title: NAME, end: NAME, lux: {...BASE.lux, ...(OPTS.lux ?? {})}, pal: {...PAL, ...(BASE.pal ?? {}), ...(OPTS.pal ?? {})}};
+const LOOK0: Record<string, string> = {finance: 'sticker25d', press: 'engraving', blueprint: 'lineart_white', terminal: 'pixel16', desk: 'product_photo', editorial: 'flat_editorial',
+  banknote: 'engraving', casefile: 'product_photo', chalk: 'chalk', pixelgame: 'pixel16'};
+const P7 = S7 && (D as any).style_plates !== false ? PLATES7[NAME] : null;
+export const TH: any = {...BASE, ...(P7 ?? {}), ...OPTS, name: KEY, title: KEY, end: KEY, style: NAME, s7: !!S7, s7bd: !!S7 && !P7,
+  propLook: (D as any).prop_look ?? OPTS.propLook ?? BASE.propLook ?? LOOK0[KEY] ?? 'sticker25d',
+  lux: {...BASE.lux, ...(OPTS.lux ?? {})}, pal: {...PAL, ...(BASE.pal ?? {}), ...(OPTS.pal ?? {})}};

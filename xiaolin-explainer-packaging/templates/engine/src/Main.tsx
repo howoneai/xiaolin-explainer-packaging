@@ -10,6 +10,7 @@ import {TECH_ELS} from './bg_tech';
 import {REAL_ELS} from './els_real';
 import {TH} from './theme';
 import {CrtFx, ENDS, TITLES} from './skins';
+import {STYLE7} from './styles7';
 const ELS: any = {...ELS5, ...ELS6, ...ELS7, ...ELS8, ...TECH_ELS, ...REAL_ELS};
 import D from './data/shots.json';
 
@@ -73,8 +74,8 @@ const EndCard: React.FC<any> = ({e, t}) => {
   );
 };
 // each theme has its own title and end card (skins.tsx); TitleCard / EndCard stay as the generic fallback
-const TitleAny: React.FC<any> = (p) => {const C = TITLES[TH.title] ?? TitleCard; return <C {...p} />;};
-const EndAny: React.FC<any> = (p) => {const C = ENDS[TH.end] ?? EndCard; return <C {...p} />;};
+const TitleAny: React.FC<any> = (p) => {const C = (TH.s7 && STYLE7[TH.style]?.Title) || TITLES[TH.title] || TitleCard; return <C {...p} />;};
+const EndAny: React.FC<any> = (p) => {const C = (TH.s7 && STYLE7[TH.style]?.End) || ENDS[TH.end] || EndCard; return <C {...p} />;};
 const SCREEN: any = {titlecard: TitleAny, endcard: EndAny, ruler: Ruler};
 
 // ---------------------------------------------------------------- element dispatcher

@@ -4,6 +4,7 @@ import {clamp, eio, eout, F, FPS, img, lerp, prog, rnd} from './lib';
 import {TH} from './theme';
 import {DotGrid, TechDeco, TechTitle, techBokeh} from './bg_tech';
 import {PlateDark, PlatePaper, PlateTitle} from './bg_lux';
+import {STYLE7} from './styles7';
 
 export const Banknote: React.FC<{w?: number; c?: string; style?: any}> = ({w = 120, c = '#e98e9c', style}) => (
   <svg width={w} height={w * 0.54} viewBox="0 0 120 65" style={style}>
@@ -135,6 +136,10 @@ export const Grain: React.FC<{t: number; o?: number}> = ({t, o = 0.07}) => {
 export const BG: React.FC<{bg: any; t: number; cam: any; sc: any}> = ({bg, t, cam, sc}) => {
   if (!bg || bg.type === 'none') return null;
   const lt = t - sc.t0;
+  if (TH.s7bd && ['dark', 'paper', 'title', 'end'].includes(bg.type) && typeof bg.plate !== 'string' && !bg.photo) {
+    const B = STYLE7[TH.style].Backdrop;
+    return <B bg={bg} t={t} lt={lt} cam={cam} />;
+  }
   if (bg.type === 'dark') {
     // plate backgrounds (theme plates or a per-scene bg.plate); bg.photo keeps the old darkened-photo path
     if (!bg.photo && bg.plate !== false && (TH.plates || typeof bg.plate === 'string'))

@@ -79,7 +79,7 @@ sc = Scene('g_line', t0, photo_bg('photos/coffee/beans.jpg', dim=0.5, blur=2))
 {"theme": "press", "prop_look": "ink_wash"}
 ```
 
-`prop_look` 决定道具怎么落在页面上（阴影方式见下表）。不写时用主题默认：finance `sticker25d`、press `engraving`、blueprint `lineart_white`、terminal `pixel16`、desk `product_photo`、editorial `flat_editorial`。单个道具可以用 `look='...'` 覆盖，但同一期最好只用一种。
+`prop_look` 决定道具怎么落在页面上（阴影方式见下表）。不写时用主题默认：finance `sticker25d`、press `engraving`、terminal `pixel16`、banknote `engraving`、casefile `product_photo`、chalk `lineart_white`、pixelgame `pixel16`；旧主题 blueprint `lineart_white`、desk `product_photo`、editorial `flat_editorial`。单个道具可以用 `look='...'` 覆盖，但同一期最好只用一种。
 
 | # | id | 画风 | 适合主题 | 页面 | 阴影 | 适合选题 |
 |---|---|---|---|---|---|---|
